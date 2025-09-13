@@ -4,6 +4,7 @@ import { ItemView, WorkspaceLeaf, Notice } from 'obsidian';
 import { TASKSWITCH_VIEW_TYPE, Role } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
+import { RoleDashboardModal } from './Modals';
 import type TaskSwitchPlugin from '../../main';
 
 export class TaskSwitchView extends ItemView {
@@ -283,22 +284,13 @@ export class TaskSwitchView extends ItemView {
 
 		// Dashboard button
 		const dashboardBtn = actionsContainer.createEl('button', {
-			text: '📊 Dashboard',
+			text: 'Dashboard',
 			cls: 'quick-action-btn'
 		});
 		dashboardBtn.addEventListener('click', () => {
 			console.log('TaskSwitchView: Dashboard button clicked');
 			try {
-				// Try to open RoleDashboardModal if it exists
-				if ((this.plugin as any).RoleDashboardModal) {
-					console.log('TaskSwitchView: Opening RoleDashboardModal');
-					new (this.plugin as any).RoleDashboardModal(this.app, this.plugin).open();
-				} else {
-					console.warn('TaskSwitchView: RoleDashboardModal not found, using fallback');
-					// Fallback: Open settings tab instead
-					this.app.setting.open();
-					this.app.setting.openTabById('taskswitch-settings');
-				}
+				new RoleDashboardModal(this.app, this.plugin).open();
 			} catch (error) {
 				console.error('TaskSwitchView: Error opening dashboard:', error);
 				new Notice('Dashboard not available. Please check console for details.');
@@ -377,7 +369,7 @@ export class TaskSwitchView extends ItemView {
 
 			if (isActive) {
 				// Open dashboard when clicking active role
-				new (this.plugin as any).RoleDashboardModal(this.app, this.plugin).open();
+				new RoleDashboardModal(this.app, this.plugin).open();
 			} else {
 				// Switch to this role
 				if (this.plugin.data.state.activeRoleId) {

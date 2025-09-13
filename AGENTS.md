@@ -1,19 +1,24 @@
-# Obsidian community plugin
+# TaskSwitch - Obsidian Plugin
 
 ## Project overview
 
-- Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
-- Entry point: `main.ts` compiled to `main.js` and loaded by Obsidian.
-- Required release artifacts: `main.js`, `manifest.json`, and optional `styles.css`.
+**TaskSwitch** is a sophisticated productivity plugin for Obsidian that reduces context-switching costs through enforced session locks, transition windows, and comprehensive role-based task management with real-time tracking and analytics.
+
+- **Target**: Obsidian Community Plugin (TypeScript → bundled JavaScript)
+- **Plugin ID**: `taskswitch`
+- **Entry point**: `main.ts` compiled to `main.js` and loaded by Obsidian
+- **Required release artifacts**: `main.js`, `manifest.json`, and optional `styles.css`
+- **Current Version**: 0.1.0
+- **Minimum Obsidian Version**: 1.6.0
+- **Mobile Support**: Full (iOS and Android)
 
 ## Environment & tooling
 
-- Node.js: use current LTS (Node 18+ recommended).
-- **Package manager: npm** (required for this sample - `package.json` defines npm scripts and dependencies).
-- **Bundler: esbuild** (required for this sample - `esbuild.config.mjs` and build scripts depend on it). Alternative bundlers like Rollup or webpack are acceptable for other projects if they bundle all external dependencies into `main.js`.
-- Types: `obsidian` type definitions.
-
-**Note**: This sample project has specific technical dependencies on npm and esbuild. If you're creating a plugin from scratch, you can choose different tools, but you'll need to replace the build configuration accordingly.
+- **Node.js**: Current LTS (Node 16+ recommended)
+- **Package manager**: npm (required - `package.json` defines npm scripts and dependencies)
+- **Bundler**: esbuild (required - `esbuild.config.mjs` and build scripts depend on it)
+- **TypeScript**: 4.7.4 with strict mode enabled
+- **Types**: `obsidian` type definitions (latest)
 
 ### Install
 
@@ -33,50 +38,73 @@ npm run dev
 npm run build
 ```
 
-## Linting
+### Version management
 
-- To use eslint install eslint from terminal: `npm install -g eslint`
-- To use eslint to analyze this project use this command: `eslint main.ts`
-- eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder: `eslint ./src/`
+```bash
+npm run version
+```
+
+## Core Features
+
+- **Role-Based Task Management**: Create custom roles with names, colors, descriptions, and icons
+- **Anti-Micro-Switching System**: Enforced minimum session durations and transition windows
+- **Real-Time Tracking**: Live session tracking with comprehensive analytics
+- **Visual Experience**: Side panel dashboard, status bar, workspace border, and interactive modals
+- **Session Notes**: Add contextual notes to any session
+- **Data Export**: CSV and JSON export capabilities with date filtering
 
 ## File & folder conventions
 
-- **Organize code into multiple files**: Split functionality across separate modules rather than putting everything in `main.ts`.
-- Source lives in `src/`. Keep `main.ts` small and focused on plugin lifecycle (loading, unloading, registering commands).
-- **Example file structure**:
-  ```
-  src/
-    main.ts           # Plugin entry point, lifecycle management
-    settings.ts       # Settings interface and defaults
-    commands/         # Command implementations
-      command1.ts
-      command2.ts
-    ui/              # UI components, modals, views
-      modal.ts
-      view.ts
-    utils/           # Utility functions, helpers
-      helpers.ts
-      constants.ts
-    types.ts         # TypeScript interfaces and types
-  ```
-- **Do not commit build artifacts**: Never commit `node_modules/`, `main.js`, or other generated files to version control.
-- Keep the plugin small. Avoid large dependencies. Prefer browser-compatible packages.
-- Generated output should be placed at the plugin root or `dist/` depending on your build setup. Release artifacts must end up at the top level of the plugin folder in the vault (`main.js`, `manifest.json`, `styles.css`).
+**TaskSwitch follows a modular architecture with clean separation of concerns:**
 
-## Manifest rules (`manifest.json`)
+### Actual project structure:
+```
+src/
+  main.ts              # Plugin entry point and core functionality (525 lines)
+  types.ts             # TypeScript interfaces and type definitions
+  utils.ts             # Utility functions and helpers
+  icons.ts             # SVG icon library (40+ icons)
+  settings/
+    Settings.ts        # Settings interface and management
+  views/
+    SidePanelView.ts   # Main side panel component
+    Modals.ts          # Modal components (Transition, RolePicker, etc.)
+  README.md            # Source documentation
+```
 
-- Must include (non-exhaustive):  
-  - `id` (plugin ID; for local dev it should match the folder name)  
-  - `name`  
-  - `version` (Semantic Versioning `x.y.z`)  
-  - `minAppVersion`  
-  - `description`  
-  - `isDesktopOnly` (boolean)  
-  - Optional: `author`, `authorUrl`, `fundingUrl` (string or map)
-- Never change `id` after release. Treat it as stable API.
-- Keep `minAppVersion` accurate when using newer APIs.
-- Canonical requirements are coded here: https://github.com/obsidianmd/obsidian-releases/blob/master/.github/workflows/validate-plugin-entry.yml
+### Key architectural decisions:
+- **main.ts contains core logic**: Unlike typical samples, this plugin keeps substantial functionality in main.ts (525 lines) including session management, role operations, and UI coordination
+- **Modular UI components**: Views and modals are separated into dedicated files
+- **Comprehensive type system**: Full TypeScript interfaces for all data structures
+- **Rich icon library**: 40+ categorized SVG icons with programmatic rendering
+- **Utility-first approach**: Common operations centralized in utils.ts
+
+### Build artifacts:
+- **Do not commit**: `node_modules/`, `main.js`, or other generated files
+- **Release artifacts**: Must be at plugin root (`main.js`, `manifest.json`, `styles.css`)
+- **Mobile compatibility**: No Node/Electron APIs used (`isDesktopOnly: false`)
+
+## Manifest configuration
+
+**Current manifest.json:**
+```json
+{
+  "id": "taskswitch",
+  "name": "TaskSwitch", 
+  "version": "0.1.0",
+  "minAppVersion": "1.6.0",
+  "description": "A lightweight plugin that reduces context-switching cost with enforced transition windows and session tracking.",
+  "author": "Zafrem",
+  "authorUrl": "https://github.com/zafrem",
+  "isDesktopOnly": false
+}
+```
+
+**Key points:**
+- **Stable ID**: `taskswitch` - never change after release
+- **Mobile support**: `isDesktopOnly: false` enables iOS/Android compatibility
+- **Version tracking**: Uses semantic versioning, managed via `version-bump.mjs`
+- **Minimum version**: Requires Obsidian 1.6.0+ for modern API features
 
 ## Testing
 
@@ -88,30 +116,73 @@ npm run build
 
 ## Commands & settings
 
-- Any user-facing commands should be added via `this.addCommand(...)`.
-- If the plugin has configuration, provide a settings tab and sensible defaults.
-- Persist settings using `this.loadData()` / `this.saveData()`.
-- Use stable command IDs; avoid renaming once released.
+### Registered commands (in main.ts):
+- `open-taskswitch-panel`: Opens the side panel dashboard
+- `open-role-dashboard`: Opens role dashboard modal
+- `start-role`: Opens role picker to start a new session
+- `switch-role`: Opens role picker to switch from current session
+- `end-current-role`: Immediately ends the current active session
+- `add-note`: Opens note editor for current session
+
+### Settings system:
+- **Settings tab**: `TaskSwitchSettingsTab` class in `src/settings/Settings.ts`
+- **Data persistence**: Uses `this.loadData()` / `this.saveData()` with auto-save every 60 seconds
+- **Default settings**: Defined in `src/types.ts` as `DEFAULT_SETTINGS`
+- **Configuration options**:
+  - Transition duration (30-600 seconds)
+  - Minimum session duration (300-3600 seconds)
+  - Visual preferences (status bar, workspace border, opacity)
+
+### Data structure:
+```typescript
+interface TaskSwitchData {
+  roles: Role[];
+  events: TaskSwitchEvent[];
+  state: TaskSwitchState;
+  settings: TaskSwitchSettings;
+}
+```
 
 ## Versioning & releases
 
-- Bump `version` in `manifest.json` (SemVer) and update `versions.json` to map plugin version → minimum app version.
-- Create a GitHub release whose tag exactly matches `manifest.json`'s `version`. Do not use a leading `v`.
-- Attach `manifest.json`, `main.js`, and `styles.css` (if present) to the release as individual assets.
-- After the initial release, follow the process to add/update your plugin in the community catalog as required.
+### Version management:
+- **Current version**: 0.1.0 (initial release)
+- **Version script**: `npm run version` uses `version-bump.mjs` to sync `manifest.json` and `versions.json`
+- **Version mapping**: `versions.json` maps plugin version → minimum Obsidian version
+
+### Release process:
+1. Run `npm run build` to generate `main.js`
+2. Run `npm run version` to bump version numbers
+3. Create GitHub release with tag matching `manifest.json` version (no `v` prefix)
+4. Attach release artifacts: `main.js`, `manifest.json`, `styles.css`
+5. Submit to Obsidian community plugin catalog
+
+### Current release artifacts:
+- `main.js`: Compiled TypeScript bundle
+- `manifest.json`: Plugin metadata
+- `styles.css`: Optional styling (if present)
 
 ## Security, privacy, and compliance
 
-Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particular:
+**TaskSwitch follows strict privacy-first principles:**
 
-- Default to local/offline operation. Only make network requests when essential to the feature.
-- No hidden telemetry. If you collect optional analytics or call third-party services, require explicit opt-in and document clearly in `README.md` and in settings.
-- Never execute remote code, fetch and eval scripts, or auto-update plugin code outside of normal releases.
-- Minimize scope: read/write only what's necessary inside the vault. Do not access files outside the vault.
-- Clearly disclose any external services used, data sent, and risks.
-- Respect user privacy. Do not collect vault contents, filenames, or personal information unless absolutely necessary and explicitly consented.
-- Avoid deceptive patterns, ads, or spammy notifications.
-- Register and clean up all DOM, app, and interval listeners using the provided `register*` helpers so the plugin unloads safely.
+### Privacy features:
+- **100% local operation**: No network requests, no external services
+- **No telemetry**: Zero data collection or transmission
+- **Vault-only access**: Only reads/writes plugin data within vault
+- **No remote code**: No external script loading or execution
+- **Privacy by design**: All session data stays on user's device
+
+### Security implementation:
+- **Safe DOM management**: All listeners registered via `this.register*` helpers
+- **Memory cleanup**: Proper cleanup of timers, intervals, and event listeners
+- **Data validation**: Input validation for colors, durations, and text fields
+- **Error handling**: Graceful error handling with user-friendly messages
+
+### Compliance:
+- **Obsidian policies**: Fully compliant with Developer Policies and Plugin Guidelines
+- **Mobile compatibility**: No desktop-only APIs used
+- **Clean unloading**: Proper cleanup in `onunload()` method
 
 ## UX & copy guidelines (for UI text, commands, settings)
 
@@ -130,13 +201,32 @@ Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particula
 
 ## Coding conventions
 
-- TypeScript with `"strict": true` preferred.
-- **Keep `main.ts` minimal**: Focus only on plugin lifecycle (onload, onunload, addCommand calls). Delegate all feature logic to separate modules.
-- **Split large files**: If any file exceeds ~200-300 lines, consider breaking it into smaller, focused modules.
-- **Use clear module boundaries**: Each file should have a single, well-defined responsibility.
-- Bundle everything into `main.js` (no unbundled runtime deps).
-- Avoid Node/Electron APIs if you want mobile compatibility; set `isDesktopOnly` accordingly.
-- Prefer `async/await` over promise chains; handle errors gracefully.
+**TaskSwitch uses modern TypeScript with strict conventions:**
+
+### TypeScript configuration:
+- **Strict mode**: `"strict": true` enabled in `tsconfig.json`
+- **Version**: TypeScript 4.7.4
+- **Full typing**: All interfaces defined in `src/types.ts`
+- **No any types**: Comprehensive type coverage
+
+### Architecture decisions:
+- **Substantial main.ts**: Unlike typical samples, main.ts contains 525 lines of core functionality
+- **Modular UI**: Views and modals separated into dedicated files
+- **Utility centralization**: Common functions in `src/utils.ts`
+- **Icon system**: Comprehensive SVG library in `src/icons.ts`
+
+### Code style:
+- **Async/await**: Preferred over promise chains
+- **Error handling**: Graceful error handling with user notices
+- **Mobile compatibility**: No Node/Electron APIs (`isDesktopOnly: false`)
+- **Clean separation**: Clear boundaries between data, UI, and business logic
+- **Event-driven**: Comprehensive event logging and session derivation
+
+### File size considerations:
+- **main.ts**: 525 lines (substantial core functionality)
+- **utils.ts**: 273 lines (comprehensive utilities)
+- **icons.ts**: 127 lines (40+ SVG icons)
+- **Modular approach**: Large features split across multiple files
 
 ## Mobile
 
@@ -144,108 +234,166 @@ Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particula
 - Don't assume desktop-only behavior unless `isDesktopOnly` is `true`.
 - Avoid large in-memory structures; be mindful of memory and storage constraints.
 
-## Agent do/don't
+## TaskSwitch-specific development guidelines
 
-**Do**
-- Add commands with stable IDs (don't rename once released).
-- Provide defaults and validation in settings.
-- Write idempotent code paths so reload/unload doesn't leak listeners or intervals.
-- Use `this.register*` helpers for everything that needs cleanup.
+### Core functionality patterns:
+- **Session management**: All session operations go through main.ts methods (`startSession`, `switchSession`, `endSession`)
+- **Event logging**: Every state change creates a `TaskSwitchEvent` for audit trail
+- **Data derivation**: Sessions are derived from events using `Utils.deriveSessionsFromEvents()`
+- **Auto-save**: Plugin data auto-saves every 60 seconds via `registerInterval`
 
-**Don't**
-- Introduce network calls without an obvious user-facing reason and documentation.
-- Ship features that require cloud services without clear disclosure and explicit opt-in.
-- Store or transmit vault contents unless essential and consented.
+### UI patterns:
+- **Side panel**: Primary interface via `TaskSwitchView` in left sidebar
+- **Modals**: Transition, role picker, note editing, and dashboard modals
+- **Status indicators**: Status bar and optional workspace border show active role
+- **Icon system**: Use `IconLibrary.createIconElement()` for consistent icon rendering
 
-## Common tasks
+### Data management:
+- **Local storage**: All data in `.obsidian/plugins/taskswitch/data.json`
+- **Type safety**: Use interfaces from `src/types.ts` for all data structures
+- **Validation**: Validate user inputs (colors, durations, text) before saving
+- **Migration**: Support data structure changes for future versions
 
-### Organize code across multiple files
+## TaskSwitch implementation examples
 
-**main.ts** (minimal, lifecycle only):
+### Role management pattern:
 ```ts
-import { Plugin } from "obsidian";
-import { MySettings, DEFAULT_SETTINGS } from "./settings";
-import { registerCommands } from "./commands";
-
-export default class MyPlugin extends Plugin {
-  settings: MySettings;
-
-  async onload() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    registerCommands(this);
-  }
+// Creating a role (from main.ts)
+createRole(name: string, colorHex: string, description?: string, icon?: string): Role {
+  const role: Role = {
+    id: Utils.generateId(),
+    name,
+    colorHex,
+    description,
+    icon
+  };
+  
+  this.data.roles.push(role);
+  this.savePluginData();
+  this.refreshSidePanel();
+  return role;
 }
 ```
 
-**settings.ts**:
+### Session management pattern:
 ```ts
-export interface MySettings {
-  enabled: boolean;
-  apiKey: string;
-}
-
-export const DEFAULT_SETTINGS: MySettings = {
-  enabled: true,
-  apiKey: "",
-};
-```
-
-**commands/index.ts**:
-```ts
-import { Plugin } from "obsidian";
-import { doSomething } from "./my-command";
-
-export function registerCommands(plugin: Plugin) {
-  plugin.addCommand({
-    id: "do-something",
-    name: "Do something",
-    callback: () => doSomething(plugin),
+// Starting a session with event logging
+startSession(roleId: string): void {
+  const sessionId = Utils.generateId();
+  const now = new Date().toISOString();
+  
+  // Update state
+  this.data.state = {
+    activeRoleId: roleId,
+    activeSessionId: sessionId,
+    activeStartAt: now,
+    inTransition: false,
+    lockUntil: new Date(Date.now() + this.data.settings.minSessionSeconds * 1000).toISOString()
+  };
+  
+  // Log event
+  this.data.events.push({
+    id: Utils.generateId(),
+    type: 'start',
+    roleId,
+    at: now,
+    meta: { sessionId }
   });
 }
 ```
 
-### Add a command
-
+### Icon rendering pattern:
 ```ts
+// Using the icon library
+const iconElement = IconLibrary.createIconElement('laptop', 24, '#3498db');
+container.appendChild(iconElement);
+```
+
+### TaskSwitch command registration:
+```ts
+// All commands registered in main.ts registerCommands() method
 this.addCommand({
-  id: "your-command-id",
-  name: "Do the thing",
-  callback: () => this.doTheThing(),
+  id: 'open-taskswitch-panel',
+  name: 'Open TaskSwitch Panel',
+  callback: () => this.activateView()
+});
+
+this.addCommand({
+  id: 'start-role',
+  name: 'Start/Resume Role',
+  callback: () => new RolePickerModal(this.app, this, 'start').open()
 });
 ```
 
-### Persist settings
-
+### Data persistence pattern:
 ```ts
-interface MySettings { enabled: boolean }
-const DEFAULT_SETTINGS: MySettings = { enabled: true };
+// TaskSwitch uses comprehensive data structure
+interface TaskSwitchData {
+  roles: Role[];
+  events: TaskSwitchEvent[];
+  state: TaskSwitchState;
+  settings: TaskSwitchSettings;
+}
 
-async onload() {
-  this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-  await this.saveData(this.settings);
+// Auto-save every minute
+this.registerInterval(window.setInterval(() => {
+  this.savePluginData();
+}, 60000));
+```
+
+### Safe cleanup pattern:
+```ts
+// All timers and listeners properly registered
+this.registerInterval(window.setInterval(() => { /* auto-save */ }, 60000));
+this.registerDomEvent(window, 'resize', () => { /* handle resize */ });
+
+// Cleanup in onunload
+onunload() {
+  this.removeStatusBar();
+  this.removeWorkspaceBorder();
 }
 ```
 
-### Register listeners safely
+## TaskSwitch troubleshooting
 
-```ts
-this.registerEvent(this.app.workspace.on("file-open", f => { /* ... */ }));
-this.registerDomEvent(window, "resize", () => { /* ... */ });
-this.registerInterval(window.setInterval(() => { /* ... */ }, 1000));
-```
+### Common issues:
+- **Plugin not loading**: Ensure `main.js`, `manifest.json` in `.obsidian/plugins/taskswitch/`
+- **Build failures**: Run `npm run build` - requires esbuild and TypeScript compilation
+- **Side panel not opening**: Check console for errors, try ribbon icon or command palette
+- **Roles not saving**: Verify write permissions, check data validation in settings
+- **Timer issues**: Ensure system clock accuracy, check session lock logic
+- **Mobile problems**: Plugin is mobile-compatible (`isDesktopOnly: false`)
 
-## Troubleshooting
+### Debug information:
+- **Console logging**: Extensive logging throughout main.ts for debugging
+- **Data inspection**: Check `.obsidian/plugins/taskswitch/data.json` for current state
+- **Event tracking**: All actions logged as `TaskSwitchEvent` objects
+- **Session derivation**: Sessions reconstructed from event log via `Utils.deriveSessionsFromEvents()`
 
-- Plugin doesn't load after build: ensure `main.js` and `manifest.json` are at the top level of the plugin folder under `<Vault>/.obsidian/plugins/<plugin-id>/`. 
-- Build issues: if `main.js` is missing, run `npm run build` or `npm run dev` to compile your TypeScript source code.
-- Commands not appearing: verify `addCommand` runs after `onload` and IDs are unique.
-- Settings not persisting: ensure `loadData`/`saveData` are awaited and you re-render the UI after changes.
-- Mobile-only issues: confirm you're not using desktop-only APIs; check `isDesktopOnly` and adjust.
+### Performance considerations:
+- **Large event history**: Plugin handles 50+ events efficiently
+- **Memory management**: Proper cleanup of DOM elements and timers
+- **Auto-save frequency**: 60-second intervals balance performance and data safety
 
-## References
+## TaskSwitch architecture summary
 
-- Obsidian sample plugin: https://github.com/obsidianmd/obsidian-sample-plugin
-- API documentation: https://docs.obsidian.md
-- Developer policies: https://docs.obsidian.md/Developer+policies
-- Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
-- Style guide: https://help.obsidian.md/style-guide
+### Key components:
+- **main.ts**: 525 lines of core functionality including session management, role operations, UI coordination
+- **src/types.ts**: Complete TypeScript interfaces for all data structures
+- **src/utils.ts**: 273 lines of utility functions including session derivation and analytics
+- **src/icons.ts**: 40+ categorized SVG icons with programmatic rendering
+- **src/views/**: Side panel and modal components
+- **src/settings/**: Settings interface and management
+
+### Data flow:
+1. **User actions** → Commands or UI interactions
+2. **State changes** → Event logging in `data.events`
+3. **Session derivation** → `Utils.deriveSessionsFromEvents()` reconstructs sessions
+4. **UI updates** → Status bar, side panel, workspace border refresh
+5. **Auto-save** → Data persisted every 60 seconds
+
+### References:
+- **Plugin repository**: Current TaskSwitch implementation
+- **Obsidian API**: https://docs.obsidian.md
+- **Plugin guidelines**: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
+- **TypeScript**: Strict mode enabled for type safety

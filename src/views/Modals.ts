@@ -328,6 +328,371 @@ export class NoteEditModal extends Modal {
 	}
 }
 
+export class RoleDashboardModal extends Modal {
+	private plugin: TaskSwitchPlugin;
+	private timerInterval: number | null = null;
+	private durationEl: HTMLElement | null = null;
+
+	constructor(app: App, plugin: TaskSwitchPlugin) {
+		super(app);
+		this.plugin = plugin;
+	}
+
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.empty();
+
+		// Mobile responsive styling
+		if (Platform.isMobile) {
+			contentEl.style.padding = '15px';
+			contentEl.style.maxHeight = '90vh';
+			contentEl.style.overflowY = 'auto';
+		}
+
+		contentEl.createEl('h2', { text: 'Role Dashboard' });
+
+		// Analytics section
+		this.createAnalyticsSection(contentEl);
+
+		// Current status section
+		this.createCurrentStatusSection(contentEl);
+
+		// Start real-time timer if there's an active session
+		this.startRealtimeTimer();
+	}
+
+	private createAnalyticsSection(contentEl: HTMLElement): void {
+		const section = contentEl.createDiv({
+			attr: {
+				style: `
+					margin: 20px 0;
+					padding: 16px;
+					border: 1px solid var(--background-modifier-border);
+					border-radius: 8px;
+					background: var(--background-secondary);
+				`
+			}
+		});
+
+		section.createEl('h3', {
+			text: '📊 Analytics',
+			attr: { style: 'margin: 0 0 12px 0; font-size: 16px;' }
+		});
+
+		// Get analytics data
+		const today = Utils.getStartOfDay();
+		const todaySessions = this.plugin.getDerivedSessions(today, new Date());
+		const totalTodayMinutes = todaySessions.reduce((sum, s) => {
+			if (s.endAt) {
+				return sum + (new Date(s.endAt).getTime() - new Date(s.startAt).getTime()) / (1000 * 60);
+			} else if (s.id === this.plugin.data.state.activeSessionId) {
+				return sum + (Date.now() - new Date(s.startAt).getTime()) / (1000 * 60);
+			}
+			return sum;
+		}, 0);
+		const switchCount = todaySessions.length;
+
+		// Week analytics
+		const weekStart = Utils.getStartOfWeek();
+		const weekSessions = this.plugin.getDerivedSessions(weekStart, new Date());
+		const totalWeekMinutes = weekSessions.reduce((sum, s) => {
+			if (s.endAt) {
+				return sum + (new Date(s.endAt).getTime() - new Date(s.startAt).getTime()) / (1000 * 60);
+			} else if (s.id === this.plugin.data.state.activeSessionId) {
+				return sum + (Date.now() - new Date(s.startAt).getTime()) / (1000 * 60);
+			}
+			return sum;
+		}, 0);
+		const avgDailyMinutes = totalWeekMinutes / 7;
+
+		// Month analytics
+		const monthStart = Utils.getStartOfMonth();
+		const monthSessions = this.plugin.getDerivedSessions(monthStart, new Date());
+		const totalMonthMinutes = monthSessions.reduce((sum, s) => {
+			if (s.endAt) {
+				return sum + (new Date(s.endAt).getTime() - new Date(s.startAt).getTime()) / (1000 * 60);
+			} else if (s.id === this.plugin.data.state.activeSessionId) {
+				return sum + (Date.now() - new Date(s.startAt).getTime()) / (1000 * 60);
+			}
+			return sum;
+		}, 0);
+		const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+		const avgMonthlyDailyMinutes = totalMonthMinutes / daysInMonth;
+
+		// Analytics grid
+		const grid = section.createDiv({
+			attr: {
+				style: `
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 12px;
+					${Platform.isMobile ? 'grid-template-columns: 1fr;' : ''}
+				`
+			}
+		});
+
+		// Today's stats
+		const todayCard = grid.createDiv({
+			attr: {
+				style: `
+					padding: 12px;
+					border-radius: 6px;
+					background: var(--background-primary);
+					border: 1px solid var(--background-modifier-border);
+				`
+			}
+		});
+		todayCard.createEl('h4', {
+			text: 'Today',
+			attr: { style: 'margin: 0 0 8px 0; font-size: 14px; color: var(--text-accent);' }
+		});
+		todayCard.createEl('div', {
+			text: `${Math.round(totalTodayMinutes)}min total`,
+			attr: { style: 'font-size: 13px; margin-bottom: 4px;' }
+		});
+		todayCard.createEl('div', {
+			text: `${switchCount} switches`,
+			attr: { style: 'font-size: 13px; color: var(--text-muted);' }
+		});
+
+		// Averages card
+		const avgCard = grid.createDiv({
+			attr: {
+				style: `
+					padding: 12px;
+					border-radius: 6px;
+					background: var(--background-primary);
+					border: 1px solid var(--background-modifier-border);
+				`
+			}
+		});
+		avgCard.createEl('h4', {
+			text: 'Averages',
+			attr: { style: 'margin: 0 0 8px 0; font-size: 14px; color: var(--text-accent);' }
+		});
+		avgCard.createEl('div', {
+			text: `${Math.round(avgDailyMinutes)}min/day (week)`,
+			attr: { style: 'font-size: 13px; margin-bottom: 4px;' }
+		});
+		avgCard.createEl('div', {
+			text: `${Math.round(avgMonthlyDailyMinutes)}min/day (month)`,
+			attr: { style: 'font-size: 13px; color: var(--text-muted);' }
+		});
+
+		// Week and month totals
+		const totalsCard = grid.createDiv({
+			attr: {
+				style: `
+					padding: 12px;
+					border-radius: 6px;
+					background: var(--background-primary);
+					border: 1px solid var(--background-modifier-border);
+					${Platform.isMobile ? '' : 'grid-column: span 2;'}
+				`
+			}
+		});
+		totalsCard.createEl('h4', {
+			text: 'Totals',
+			attr: { style: 'margin: 0 0 8px 0; font-size: 14px; color: var(--text-accent);' }
+		});
+
+		const totalsGrid = totalsCard.createDiv({
+			attr: {
+				style: `
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 8px;
+				`
+			}
+		});
+
+		totalsGrid.createEl('div', {
+			text: `Week: ${Math.round(totalWeekMinutes)}min`,
+			attr: { style: 'font-size: 13px;' }
+		});
+		totalsGrid.createEl('div', {
+			text: `Month: ${Math.round(totalMonthMinutes)}min`,
+			attr: { style: 'font-size: 13px;' }
+		});
+	}
+
+	private createCurrentStatusSection(container: HTMLElement): void {
+		const statusSection = container.createDiv({
+			attr: {
+				style: 'background: var(--background-secondary); border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid var(--interactive-accent);'
+			}
+		});
+
+		statusSection.createEl('h3', { text: 'Current Session', attr: { style: 'margin-top: 0; color: var(--interactive-accent);' } });
+
+		if (this.plugin.data.state.activeRoleId) {
+			const activeRole = this.plugin.data.roles.find(r => r.id === this.plugin.data.state.activeRoleId);
+			if (activeRole) {
+				const activeInfo = statusSection.createDiv({
+					attr: { style: 'display: flex; align-items: center; margin-bottom: 10px;' }
+				});
+
+				// Active role color dot with icon
+				const activeRoleDot = activeInfo.createDiv({
+					attr: {
+						style: `
+							width: 24px;
+							height: 24px;
+							border-radius: 50%;
+							background-color: ${activeRole.colorHex};
+							margin-right: 12px;
+							box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+							display: flex;
+							align-items: center;
+							justify-content: center;
+						`
+					}
+				});
+
+				// Add icon if available
+				if (activeRole.icon && IconLibrary.ICONS[activeRole.icon]) {
+					const iconElement = IconLibrary.createIconElement(activeRole.icon, 12, 'white');
+					iconElement.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+					activeRoleDot.appendChild(iconElement);
+				}
+
+				// Role name and duration
+				const roleInfo = activeInfo.createDiv();
+				roleInfo.createEl('strong', {
+					text: `Active: ${activeRole.name}`,
+					attr: { style: 'font-size: 18px; color: var(--text-normal);' }
+				});
+
+				// Create real-time session duration
+				if (this.plugin.data.state.activeStartAt) {
+					this.durationEl = roleInfo.createEl('div', {
+						text: 'Duration: 0s',
+						attr: { style: 'color: var(--text-muted); margin-top: 4px;' }
+					});
+					this.updateDurationDisplay();
+				}
+
+				// Lock status
+				if (this.plugin.isSessionLocked()) {
+					const remaining = this.plugin.getRemainingLockTime();
+					statusSection.createDiv({
+						text: `🔒 Session locked for ${remaining} more seconds`,
+						attr: { style: 'color: var(--text-warning); margin-top: 8px; font-style: italic;' }
+					});
+				}
+			}
+		} else {
+			statusSection.createDiv({
+				text: '⏸️ No active session',
+				attr: { style: 'color: var(--text-muted); font-style: italic;' }
+			});
+		}
+
+		// Session history for today
+		this.createTodayHistorySection(statusSection);
+	}
+
+	private createTodayHistorySection(container: HTMLElement): void {
+		const today = Utils.getStartOfDay();
+		const todaySessions = this.plugin.getDerivedSessions(today, new Date());
+
+		if (todaySessions.length > 0) {
+			container.createEl('h4', {
+				text: "Today's History",
+				attr: { style: 'margin: 20px 0 10px 0; color: var(--text-accent);' }
+			});
+
+			const historyContainer = container.createDiv({
+				attr: { style: 'max-height: 200px; overflow-y: auto;' }
+			});
+
+			todaySessions.forEach(session => {
+				const role = this.plugin.data.roles.find(r => r.id === session.roleId);
+				if (role) {
+					const sessionEl = historyContainer.createDiv({
+						attr: { style: 'display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--background-modifier-border);' }
+					});
+
+					// Role indicator
+					const indicator = sessionEl.createDiv({
+						attr: {
+							style: `
+								width: 12px;
+								height: 12px;
+								border-radius: 50%;
+								background-color: ${role.colorHex};
+								margin-right: 8px;
+							`
+						}
+					});
+
+					// Session info
+					const sessionInfo = sessionEl.createDiv();
+					const startTime = new Date(session.startAt).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+
+					// Calculate duration
+					let duration = 0;
+					if (session.endAt) {
+						duration = Math.round((new Date(session.endAt).getTime() - new Date(session.startAt).getTime()) / (1000 * 60));
+					} else if (session.id === this.plugin.data.state.activeSessionId) {
+						duration = Math.round((Date.now() - new Date(session.startAt).getTime()) / (1000 * 60));
+					}
+
+					sessionInfo.createEl('div', {
+						text: `${role.name} • ${startTime} • ${duration}min`,
+						attr: { style: 'font-size: 13px;' }
+					});
+				}
+			});
+		}
+	}
+
+	private startRealtimeTimer(): void {
+		// Clear any existing timer
+		if (this.timerInterval) {
+			clearInterval(this.timerInterval);
+		}
+
+		// Update timer every second if there's an active session
+		if (this.plugin.data.state.activeRoleId && this.plugin.data.state.activeStartAt) {
+			this.timerInterval = window.setInterval(() => {
+				this.updateDurationDisplay();
+			}, 1000);
+		}
+	}
+
+	private updateDurationDisplay(): void {
+		if (!this.durationEl || !this.plugin.data.state.activeStartAt) return;
+
+		const startTime = new Date(this.plugin.data.state.activeStartAt);
+		const now = Date.now();
+		const totalSeconds = Math.floor((now - startTime.getTime()) / 1000);
+
+		const hours = Math.floor(totalSeconds / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const seconds = totalSeconds % 60;
+
+		let durationText = '';
+		if (hours > 0) {
+			durationText = `${hours}h ${minutes}m ${seconds}s`;
+		} else if (minutes > 0) {
+			durationText = `${minutes}m ${seconds}s`;
+		} else {
+			durationText = `${seconds}s`;
+		}
+
+		this.durationEl.setText(`Duration: ${durationText}`);
+	}
+
+	onClose() {
+		if (this.timerInterval) {
+			clearInterval(this.timerInterval);
+		}
+		const { contentEl } = this;
+		contentEl.empty();
+	}
+}
+
 export class IconPickerModal extends Modal {
 	private onSelectIcon: (iconKey: string) => void;
 	private selectedIcon: string | null = null;

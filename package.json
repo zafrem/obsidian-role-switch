@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-taskswitch-plugin",
 	"version": "0.1.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "A sophisticated productivity plugin for Obsidian that reduces context-switching costs through enforced session locks, transition windows, and comprehensive role-based task management with real-time tracking and analytics.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",

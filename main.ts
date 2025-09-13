@@ -13,7 +13,7 @@ import {
 } from './src/types';
 import { Utils } from './src/utils';
 import { TaskSwitchView } from './src/views/SidePanelView';
-import { TransitionModal, RolePickerModal, NoteEditModal } from './src/views/Modals';
+import { TransitionModal, RolePickerModal, NoteEditModal, RoleDashboardModal } from './src/views/Modals';
 import { TaskSwitchSettingsTab } from './src/settings/Settings';
 
 export default class TaskSwitchPlugin extends Plugin {
@@ -474,8 +474,7 @@ export default class TaskSwitchPlugin extends Plugin {
 			id: 'open-role-dashboard',
 			name: 'Open Role Dashboard',
 			callback: () => {
-				// Note: We'll need to import the dashboard modal here
-				// new RoleDashboardModal(this.app, this).open();
+				new RoleDashboardModal(this.app, this).open();
 			}
 		});
 
