@@ -1,0 +1,10 @@
+{
+	"id": "taskswitch",
+	"name": "TaskSwitch",
+	"version": "0.1.0",
+	"minAppVersion": "1.6.0",
+	"description": "A lightweight plugin that reduces context-switching cost with enforced transition windows and session tracking.",
+	"author": "TaskSwitch Team",
+	"authorUrl": "",
+	"isDesktopOnly": false
+}
