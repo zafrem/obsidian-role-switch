@@ -9,6 +9,8 @@ import type RoleSwitchPlugin from '../../main';
 
 export class RoleSwitchView extends ItemView {
 	private plugin: RoleSwitchPlugin;
+	private timerInterval: number | null = null;
+	private durationElement: HTMLElement | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: RoleSwitchPlugin) {
 		super(leaf);
@@ -60,7 +62,8 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	async onClose() {
-		// Cleanup if needed
+		// Cleanup timer when view closes
+		this.stopRealtimeTimer();
 	}
 
 	private addSidePanelStyles(): void {
@@ -192,14 +195,34 @@ export class RoleSwitchView extends ItemView {
 				});
 				roleName.style.color = activeRole.colorHex;
 
-				// Duration
+				// Duration with real-time updates
 				if (this.plugin.data.state.activeStartAt) {
 					const startTime = new Date(this.plugin.data.state.activeStartAt);
-					const duration = Math.floor((Date.now() - startTime.getTime()) / (1000 * 60));
-					roleInfo.createEl('div', {
-						text: `${duration}min`,
+					const totalSeconds = Math.floor((Date.now() - startTime.getTime()) / 1000);
+					const hours = Math.floor(totalSeconds / 3600);
+					const minutes = Math.floor((totalSeconds % 3600) / 60);
+					const seconds = totalSeconds % 60;
+
+					// Format initial duration display consistently
+					let initialText: string;
+					if (hours > 0) {
+						initialText = `${hours}h ${minutes}m ${seconds}s`;
+					} else if (minutes > 0) {
+						initialText = `${minutes}m ${seconds}s`;
+					} else {
+						initialText = `${seconds}s`;
+					}
+
+					this.durationElement = roleInfo.createEl('div', {
+						text: initialText,
 						cls: 'role-duration'
 					});
+
+					// Start real-time timer
+					this.startRealtimeTimer();
+				} else {
+					// Clear duration element reference if no active session
+					this.durationElement = null;
 				}
 
 				// Lock status
@@ -212,6 +235,10 @@ export class RoleSwitchView extends ItemView {
 				}
 			}
 		} else {
+			// Stop any running timer when no active session
+			this.stopRealtimeTimer();
+			this.durationElement = null;
+
 			statusCard.createDiv({
 				text: '⏸️ No active session',
 				cls: 'no-active-session'
@@ -384,6 +411,8 @@ export class RoleSwitchView extends ItemView {
 
 	// Refresh the side panel view
 	public refresh(): void {
+		// Stop any existing timer before refreshing
+		this.stopRealtimeTimer();
 		this.onOpen();
 	}
 
@@ -421,5 +450,53 @@ export class RoleSwitchView extends ItemView {
 		});
 		
 		console.log('RoleSwitchView: Fallback dashboard created');
+	}
+
+	private startRealtimeTimer(): void {
+		// Clear any existing timer
+		this.stopRealtimeTimer();
+
+		// Only start timer if there's an active session and duration element
+		if (!this.plugin.data.state.activeStartAt || !this.durationElement) {
+			return;
+		}
+
+		// Update timer every second
+		this.timerInterval = window.setInterval(() => {
+			this.updateDurationDisplay();
+		}, 1000);
+	}
+
+	private stopRealtimeTimer(): void {
+		if (this.timerInterval !== null) {
+			window.clearInterval(this.timerInterval);
+			this.timerInterval = null;
+		}
+	}
+
+	private updateDurationDisplay(): void {
+		// Check if we still have an active session and duration element
+		if (!this.plugin.data.state.activeStartAt || !this.durationElement) {
+			this.stopRealtimeTimer();
+			return;
+		}
+
+		const startTime = new Date(this.plugin.data.state.activeStartAt);
+		const totalSeconds = Math.floor((Date.now() - startTime.getTime()) / 1000);
+		const hours = Math.floor(totalSeconds / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const seconds = totalSeconds % 60;
+
+		// Display format based on duration
+		let displayText: string;
+		if (hours > 0) {
+			displayText = `${hours}h ${minutes}m ${seconds}s`;
+		} else if (minutes > 0) {
+			displayText = `${minutes}m ${seconds}s`;
+		} else {
+			displayText = `${seconds}s`;
+		}
+
+		this.durationElement.textContent = displayText;
 	}
 }

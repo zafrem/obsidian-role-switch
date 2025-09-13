@@ -386,33 +386,6 @@ class RoleEditModal extends Modal {
 			this.close();
 		});
 
-		// Add a quick save button as backup
-		const quickSaveBtn = buttonContainer.createEl('button', { text: 'Quick Save' });
-		quickSaveBtn.style.padding = '8px 16px';
-		quickSaveBtn.style.marginRight = '8px';
-		quickSaveBtn.style.backgroundColor = '#28a745';
-		quickSaveBtn.style.color = 'white';
-		quickSaveBtn.style.border = 'none';
-		quickSaveBtn.style.borderRadius = '4px';
-		quickSaveBtn.addEventListener('click', () => {
-			console.log('RoleEditModal: Quick Save button clicked');
-			
-			// Simple save with minimal validation
-			const simpleName = this.nameInput?.value?.trim() || 'New Role';
-			const simpleColor = '#007acc'; // Default blue
-			const simpleDescription = this.descriptionInput?.value?.trim() || undefined;
-			
-			try {
-				console.log('RoleEditModal: Quick save with:', { simpleName, simpleColor, simpleDescription, selectedIcon: this.selectedIcon });
-				const newRole = this.plugin.createRole(simpleName, simpleColor, simpleDescription, this.selectedIcon || undefined);
-				console.log('RoleEditModal: Quick save successful:', newRole);
-				new Notice('Role created via quick save!');
-				this.close();
-			} catch (error) {
-				console.error('RoleEditModal: Quick save failed:', error);
-				new Notice('Quick save failed: ' + error.message);
-			}
-		});
 
 		// Focus name input
 		this.nameInput.focus();
