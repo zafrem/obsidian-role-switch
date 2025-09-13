@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-taskpivot-plugin",
+	"name": "obsidian-taskswitch-plugin",
 	"version": "0.1.0",
 	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
