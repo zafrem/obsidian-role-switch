@@ -1,6 +1,6 @@
-# TaskSwitch Plugin - Modular Architecture
+# RoleSwitch Plugin - Modular Architecture
 
-This directory contains the refactored modular components of the TaskSwitch plugin.
+This directory contains the refactored modular components of the RoleSwitch plugin.
 
 ## Structure
 

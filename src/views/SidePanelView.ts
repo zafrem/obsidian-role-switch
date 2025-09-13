@@ -1,26 +1,26 @@
 // Side Panel View Component
 
 import { ItemView, WorkspaceLeaf, Notice } from 'obsidian';
-import { TASKSWITCH_VIEW_TYPE, Role } from '../types';
+import { ROLESWITCH_VIEW_TYPE, Role } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { RoleDashboardModal } from './Modals';
-import type TaskSwitchPlugin from '../../main';
+import type RoleSwitchPlugin from '../../main';
 
-export class TaskSwitchView extends ItemView {
-	private plugin: TaskSwitchPlugin;
+export class RoleSwitchView extends ItemView {
+	private plugin: RoleSwitchPlugin;
 
-	constructor(leaf: WorkspaceLeaf, plugin: TaskSwitchPlugin) {
+	constructor(leaf: WorkspaceLeaf, plugin: RoleSwitchPlugin) {
 		super(leaf);
 		this.plugin = plugin;
 	}
 
 	getViewType() {
-		return TASKSWITCH_VIEW_TYPE;
+		return ROLESWITCH_VIEW_TYPE;
 	}
 
 	getDisplayText() {
-		return "TaskSwitch";
+		return "RoleSwitch";
 	}
 
 	getIcon() {
@@ -28,32 +28,32 @@ export class TaskSwitchView extends ItemView {
 	}
 
 	async onOpen() {
-		console.log('TaskSwitchView: onOpen called');
-		console.log('TaskSwitchView: containerEl:', this.containerEl);
-		console.log('TaskSwitchView: containerEl children:', this.containerEl.children.length);
+		console.log('RoleSwitchView: onOpen called');
+		console.log('RoleSwitchView: containerEl:', this.containerEl);
+		console.log('RoleSwitchView: containerEl children:', this.containerEl.children.length);
 		
 		const container = this.containerEl.children[1];
-		console.log('TaskSwitchView: container element:', container);
+		console.log('RoleSwitchView: container element:', container);
 		
 		if (!container) {
-			console.error('TaskSwitchView: No container element found!');
+			console.error('RoleSwitchView: No container element found!');
 			return;
 		}
 		
 		container.empty();
-		container.addClass('taskswitch-view');
-		console.log('TaskSwitchView: Container prepared, adding styles...');
+		container.addClass('role-switch-view');
+		console.log('RoleSwitchView: Container prepared, adding styles...');
 
 		// Add custom styles for side panel
 		this.addSidePanelStyles();
-		console.log('TaskSwitchView: Styles added, creating dashboard...');
+		console.log('RoleSwitchView: Styles added, creating dashboard...');
 
 		// Create side panel dashboard
 		try {
 			this.createSidePanelDashboard(container as HTMLElement);
-			console.log('TaskSwitchView: Dashboard created successfully');
+			console.log('RoleSwitchView: Dashboard created successfully');
 		} catch (error) {
-			console.error('TaskSwitchView: Error creating dashboard:', error);
+			console.error('RoleSwitchView: Error creating dashboard:', error);
 			// Fallback: create a simple test display
 			this.createFallbackDashboard(container as HTMLElement);
 		}
@@ -65,28 +65,28 @@ export class TaskSwitchView extends ItemView {
 
 	private addSidePanelStyles(): void {
 		// Check if styles already added
-		if (document.getElementById('taskswitch-side-panel-styles')) {
+		if (document.getElementById('role-switch-side-panel-styles')) {
 			return;
 		}
 
 		// Add custom CSS for side panel styling
 		const style = document.createElement('style');
-		style.id = 'taskswitch-side-panel-styles';
+		style.id = 'role-switch-side-panel-styles';
 		style.textContent = `
-			.taskswitch-view {
+			.role-switch-view {
 				padding: 16px;
 				height: 100%;
 				overflow-y: auto;
 			}
 			
-			.taskswitch-view .side-panel-header {
+			.role-switch-view .side-panel-header {
 				display: flex;
 				align-items: center;
 				gap: 8px;
 				margin-bottom: 16px;
 			}
 			
-			.taskswitch-view .header-icon {
+			.role-switch-view .header-icon {
 				width: 20px;
 				height: 20px;
 				display: flex;
@@ -99,63 +99,63 @@ export class TaskSwitchView extends ItemView {
 	}
 
 	private createSidePanelDashboard(container: HTMLElement): void {
-		console.log('TaskSwitchView: createSidePanelDashboard called');
-		console.log('TaskSwitchView: Container for dashboard:', container);
+		console.log('RoleSwitchView: createSidePanelDashboard called');
+		console.log('RoleSwitchView: Container for dashboard:', container);
 		
 		// Header with plugin branding
-		console.log('TaskSwitchView: Creating header...');
+		console.log('RoleSwitchView: Creating header...');
 		const header = container.createDiv({ cls: 'side-panel-header' });
-		console.log('TaskSwitchView: Header created:', header);
+		console.log('RoleSwitchView: Header created:', header);
 		
-		// TaskSwitch icon using existing icon library
+		// RoleSwitch icon using existing icon library
 		const headerIcon = header.createDiv({ cls: 'header-icon' });
 		try {
 			const iconElement = IconLibrary.createIconElement('gear', 20, 'var(--interactive-accent)');
-			console.log('TaskSwitchView: Icon element created:', iconElement);
+			console.log('RoleSwitchView: Icon element created:', iconElement);
 			if (iconElement.firstChild) {
 				headerIcon.appendChild(iconElement.firstChild as Node);
-				console.log('TaskSwitchView: Icon added to header');
+				console.log('RoleSwitchView: Icon added to header');
 			} else {
-				console.warn('TaskSwitchView: Icon element has no firstChild');
+				console.warn('RoleSwitchView: Icon element has no firstChild');
 			}
 		} catch (error) {
-			console.error('TaskSwitchView: Error creating header icon:', error);
+			console.error('RoleSwitchView: Error creating header icon:', error);
 		}
 		
 		const headerTitle = header.createEl('h2', { 
-			text: 'TaskSwitch', 
+			text: 'RoleSwitch', 
 			cls: 'header-title'
 		});
-		console.log('TaskSwitchView: Header title created:', headerTitle);
+		console.log('RoleSwitchView: Header title created:', headerTitle);
 
 		// Roles section (moved to top)
-		console.log('TaskSwitchView: Creating roles section...');
+		console.log('RoleSwitchView: Creating roles section...');
 		try {
 			this.createCompactRolesSection(container);
-			console.log('TaskSwitchView: Roles section created');
+			console.log('RoleSwitchView: Roles section created');
 		} catch (error) {
-			console.error('TaskSwitchView: Error creating roles section:', error);
+			console.error('RoleSwitchView: Error creating roles section:', error);
 		}
 
 		// Quick actions section  
-		console.log('TaskSwitchView: Creating quick actions section...');
+		console.log('RoleSwitchView: Creating quick actions section...');
 		try {
 			this.createQuickActionsSection(container);
-			console.log('TaskSwitchView: Quick actions section created');
+			console.log('RoleSwitchView: Quick actions section created');
 		} catch (error) {
-			console.error('TaskSwitchView: Error creating quick actions section:', error);
+			console.error('RoleSwitchView: Error creating quick actions section:', error);
 		}
 
 		// Current status section
-		console.log('TaskSwitchView: Creating status section...');
+		console.log('RoleSwitchView: Creating status section...');
 		try {
 			this.createCompactStatusSection(container);
-			console.log('TaskSwitchView: Status section created');
+			console.log('RoleSwitchView: Status section created');
 		} catch (error) {
-			console.error('TaskSwitchView: Error creating status section:', error);
+			console.error('RoleSwitchView: Error creating status section:', error);
 		}
 		
-		console.log('TaskSwitchView: Dashboard creation completed');
+		console.log('RoleSwitchView: Dashboard creation completed');
 	}
 
 	private createCompactStatusSection(container: HTMLElement): void {
@@ -288,11 +288,11 @@ export class TaskSwitchView extends ItemView {
 			cls: 'quick-action-btn'
 		});
 		dashboardBtn.addEventListener('click', () => {
-			console.log('TaskSwitchView: Dashboard button clicked');
+			console.log('RoleSwitchView: Dashboard button clicked');
 			try {
 				new RoleDashboardModal(this.app, this.plugin).open();
 			} catch (error) {
-				console.error('TaskSwitchView: Error opening dashboard:', error);
+				console.error('RoleSwitchView: Error opening dashboard:', error);
 				new Notice('Dashboard not available. Please check console for details.');
 			}
 		});
@@ -388,11 +388,11 @@ export class TaskSwitchView extends ItemView {
 	}
 
 	private createFallbackDashboard(container: HTMLElement): void {
-		console.log('TaskSwitchView: Creating fallback dashboard');
+		console.log('RoleSwitchView: Creating fallback dashboard');
 		
 		// Simple fallback content
 		container.createEl('h2', { 
-			text: 'TaskSwitch Panel', 
+			text: 'RoleSwitch Panel', 
 			attr: { style: 'color: var(--text-accent); margin: 20px 0;' }
 		});
 		
@@ -416,10 +416,10 @@ export class TaskSwitchView extends ItemView {
 			attr: { style: 'padding: 8px 16px; margin: 10px 0; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;' }
 		});
 		testBtn.addEventListener('click', () => {
-			console.log('TaskSwitchView: Test button clicked');
+			console.log('RoleSwitchView: Test button clicked');
 			new Notice('Dashboard is working!');
 		});
 		
-		console.log('TaskSwitchView: Fallback dashboard created');
+		console.log('RoleSwitchView: Fallback dashboard created');
 	}
 }

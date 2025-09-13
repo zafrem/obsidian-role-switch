@@ -1,11 +1,11 @@
-# TaskSwitch - Obsidian Plugin
+# RoleSwitch - Obsidian Plugin
 
 ## Project overview
 
-**TaskSwitch** is a sophisticated productivity plugin for Obsidian that reduces context-switching costs through enforced session locks, transition windows, and comprehensive role-based task management with real-time tracking and analytics.
+**RoleSwitch** is a sophisticated productivity plugin for Obsidian that reduces context-switching costs through enforced session locks, transition windows, and comprehensive role-based task management with real-time tracking and analytics.
 
 - **Target**: Obsidian Community Plugin (TypeScript → bundled JavaScript)
-- **Plugin ID**: `taskswitch`
+- **Plugin ID**: `role-switch`
 - **Entry point**: `main.ts` compiled to `main.js` and loaded by Obsidian
 - **Required release artifacts**: `main.js`, `manifest.json`, and optional `styles.css`
 - **Current Version**: 0.1.0
@@ -55,7 +55,7 @@ npm run version
 
 ## File & folder conventions
 
-**TaskSwitch follows a modular architecture with clean separation of concerns:**
+**RoleSwitch follows a modular architecture with clean separation of concerns:**
 
 ### Actual project structure:
 ```
@@ -89,8 +89,8 @@ src/
 **Current manifest.json:**
 ```json
 {
-  "id": "taskswitch",
-  "name": "TaskSwitch", 
+  "id": "role-switch",
+  "name": "RoleSwitch", 
   "version": "0.1.0",
   "minAppVersion": "1.6.0",
   "description": "A lightweight plugin that reduces context-switching cost with enforced transition windows and session tracking.",
@@ -101,7 +101,7 @@ src/
 ```
 
 **Key points:**
-- **Stable ID**: `taskswitch` - never change after release
+- **Stable ID**: `role-switch` - never change after release
 - **Mobile support**: `isDesktopOnly: false` enables iOS/Android compatibility
 - **Version tracking**: Uses semantic versioning, managed via `version-bump.mjs`
 - **Minimum version**: Requires Obsidian 1.6.0+ for modern API features
@@ -117,7 +117,7 @@ src/
 ## Commands & settings
 
 ### Registered commands (in main.ts):
-- `open-taskswitch-panel`: Opens the side panel dashboard
+- `open-role-switch-panel`: Opens the side panel dashboard
 - `open-role-dashboard`: Opens role dashboard modal
 - `start-role`: Opens role picker to start a new session
 - `switch-role`: Opens role picker to switch from current session
@@ -125,7 +125,7 @@ src/
 - `add-note`: Opens note editor for current session
 
 ### Settings system:
-- **Settings tab**: `TaskSwitchSettingsTab` class in `src/settings/Settings.ts`
+- **Settings tab**: `RoleSwitchSettingsTab` class in `src/settings/Settings.ts`
 - **Data persistence**: Uses `this.loadData()` / `this.saveData()` with auto-save every 60 seconds
 - **Default settings**: Defined in `src/types.ts` as `DEFAULT_SETTINGS`
 - **Configuration options**:
@@ -135,11 +135,11 @@ src/
 
 ### Data structure:
 ```typescript
-interface TaskSwitchData {
+interface RoleSwitchData {
   roles: Role[];
-  events: TaskSwitchEvent[];
-  state: TaskSwitchState;
-  settings: TaskSwitchSettings;
+  events: RoleSwitchEvent[];
+  state: RoleSwitchState;
+  settings: RoleSwitchSettings;
 }
 ```
 
@@ -164,7 +164,7 @@ interface TaskSwitchData {
 
 ## Security, privacy, and compliance
 
-**TaskSwitch follows strict privacy-first principles:**
+**RoleSwitch follows strict privacy-first principles:**
 
 ### Privacy features:
 - **100% local operation**: No network requests, no external services
@@ -201,7 +201,7 @@ interface TaskSwitchData {
 
 ## Coding conventions
 
-**TaskSwitch uses modern TypeScript with strict conventions:**
+**RoleSwitch uses modern TypeScript with strict conventions:**
 
 ### TypeScript configuration:
 - **Strict mode**: `"strict": true` enabled in `tsconfig.json`
@@ -234,27 +234,27 @@ interface TaskSwitchData {
 - Don't assume desktop-only behavior unless `isDesktopOnly` is `true`.
 - Avoid large in-memory structures; be mindful of memory and storage constraints.
 
-## TaskSwitch-specific development guidelines
+## RoleSwitch-specific development guidelines
 
 ### Core functionality patterns:
 - **Session management**: All session operations go through main.ts methods (`startSession`, `switchSession`, `endSession`)
-- **Event logging**: Every state change creates a `TaskSwitchEvent` for audit trail
+- **Event logging**: Every state change creates a `RoleSwitchEvent` for audit trail
 - **Data derivation**: Sessions are derived from events using `Utils.deriveSessionsFromEvents()`
 - **Auto-save**: Plugin data auto-saves every 60 seconds via `registerInterval`
 
 ### UI patterns:
-- **Side panel**: Primary interface via `TaskSwitchView` in left sidebar
+- **Side panel**: Primary interface via `RoleSwitchView` in left sidebar
 - **Modals**: Transition, role picker, note editing, and dashboard modals
 - **Status indicators**: Status bar and optional workspace border show active role
 - **Icon system**: Use `IconLibrary.createIconElement()` for consistent icon rendering
 
 ### Data management:
-- **Local storage**: All data in `.obsidian/plugins/taskswitch/data.json`
+- **Local storage**: All data in `.obsidian/plugins/role-switch/data.json`
 - **Type safety**: Use interfaces from `src/types.ts` for all data structures
 - **Validation**: Validate user inputs (colors, durations, text) before saving
 - **Migration**: Support data structure changes for future versions
 
-## TaskSwitch implementation examples
+## RoleSwitch implementation examples
 
 ### Role management pattern:
 ```ts
@@ -309,12 +309,12 @@ const iconElement = IconLibrary.createIconElement('laptop', 24, '#3498db');
 container.appendChild(iconElement);
 ```
 
-### TaskSwitch command registration:
+### RoleSwitch command registration:
 ```ts
 // All commands registered in main.ts registerCommands() method
 this.addCommand({
-  id: 'open-taskswitch-panel',
-  name: 'Open TaskSwitch Panel',
+  id: 'open-role-switch-panel',
+  name: 'Open RoleSwitch Panel',
   callback: () => this.activateView()
 });
 
@@ -327,12 +327,12 @@ this.addCommand({
 
 ### Data persistence pattern:
 ```ts
-// TaskSwitch uses comprehensive data structure
-interface TaskSwitchData {
+// RoleSwitch uses comprehensive data structure
+interface RoleSwitchData {
   roles: Role[];
-  events: TaskSwitchEvent[];
-  state: TaskSwitchState;
-  settings: TaskSwitchSettings;
+  events: RoleSwitchEvent[];
+  state: RoleSwitchState;
+  settings: RoleSwitchSettings;
 }
 
 // Auto-save every minute
@@ -354,10 +354,10 @@ onunload() {
 }
 ```
 
-## TaskSwitch troubleshooting
+## RoleSwitch troubleshooting
 
 ### Common issues:
-- **Plugin not loading**: Ensure `main.js`, `manifest.json` in `.obsidian/plugins/taskswitch/`
+- **Plugin not loading**: Ensure `main.js`, `manifest.json` in `.obsidian/plugins/role-switch/`
 - **Build failures**: Run `npm run build` - requires esbuild and TypeScript compilation
 - **Side panel not opening**: Check console for errors, try ribbon icon or command palette
 - **Roles not saving**: Verify write permissions, check data validation in settings
@@ -366,8 +366,8 @@ onunload() {
 
 ### Debug information:
 - **Console logging**: Extensive logging throughout main.ts for debugging
-- **Data inspection**: Check `.obsidian/plugins/taskswitch/data.json` for current state
-- **Event tracking**: All actions logged as `TaskSwitchEvent` objects
+- **Data inspection**: Check `.obsidian/plugins/role-switch/data.json` for current state
+- **Event tracking**: All actions logged as `RoleSwitchEvent` objects
 - **Session derivation**: Sessions reconstructed from event log via `Utils.deriveSessionsFromEvents()`
 
 ### Performance considerations:
@@ -375,7 +375,7 @@ onunload() {
 - **Memory management**: Proper cleanup of DOM elements and timers
 - **Auto-save frequency**: 60-second intervals balance performance and data safety
 
-## TaskSwitch architecture summary
+## RoleSwitch architecture summary
 
 ### Key components:
 - **main.ts**: 525 lines of core functionality including session management, role operations, UI coordination
@@ -393,7 +393,7 @@ onunload() {
 5. **Auto-save** → Data persisted every 60 seconds
 
 ### References:
-- **Plugin repository**: Current TaskSwitch implementation
+- **Plugin repository**: Current RoleSwitch implementation
 - **Obsidian API**: https://docs.obsidian.md
 - **Plugin guidelines**: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
 - **TypeScript**: Strict mode enabled for type safety

@@ -1,18 +1,18 @@
-// Modal Components for TaskSwitch Plugin
+// Modal Components for RoleSwitch Plugin
 
 import { App, Modal, Notice, Platform } from 'obsidian';
 import { Role, Note } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
-import type TaskSwitchPlugin from '../../main';
+import type RoleSwitchPlugin from '../../main';
 
 export class TransitionModal extends Modal {
-	private plugin: TaskSwitchPlugin;
+	private plugin: RoleSwitchPlugin;
 	private targetRole: Role;
 	private countdownInterval: number | null = null;
 	private remainingSeconds: number;
 
-	constructor(app: App, plugin: TaskSwitchPlugin, targetRole: Role) {
+	constructor(app: App, plugin: RoleSwitchPlugin, targetRole: Role) {
 		super(app);
 		this.plugin = plugin;
 		this.targetRole = targetRole;
@@ -92,10 +92,10 @@ export class TransitionModal extends Modal {
 }
 
 export class RolePickerModal extends Modal {
-	private plugin: TaskSwitchPlugin;
+	private plugin: RoleSwitchPlugin;
 	private mode: 'start' | 'switch';
 
-	constructor(app: App, plugin: TaskSwitchPlugin, mode: 'start' | 'switch' = 'start') {
+	constructor(app: App, plugin: RoleSwitchPlugin, mode: 'start' | 'switch' = 'start') {
 		super(app);
 		this.plugin = plugin;
 		this.mode = mode;
@@ -239,12 +239,12 @@ export class RolePickerModal extends Modal {
 }
 
 export class NoteEditModal extends Modal {
-	private plugin: TaskSwitchPlugin;
+	private plugin: RoleSwitchPlugin;
 	private sessionId: string;
 	private note: Note | null;
 	private textArea: HTMLTextAreaElement;
 
-	constructor(app: App, plugin: TaskSwitchPlugin, sessionId: string, note: Note | null = null) {
+	constructor(app: App, plugin: RoleSwitchPlugin, sessionId: string, note: Note | null = null) {
 		super(app);
 		this.plugin = plugin;
 		this.sessionId = sessionId;
@@ -329,11 +329,11 @@ export class NoteEditModal extends Modal {
 }
 
 export class RoleDashboardModal extends Modal {
-	private plugin: TaskSwitchPlugin;
+	private plugin: RoleSwitchPlugin;
 	private timerInterval: number | null = null;
 	private durationEl: HTMLElement | null = null;
 
-	constructor(app: App, plugin: TaskSwitchPlugin) {
+	constructor(app: App, plugin: RoleSwitchPlugin) {
 		super(app);
 		this.plugin = plugin;
 	}

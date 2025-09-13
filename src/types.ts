@@ -1,4 +1,4 @@
-// Type definitions and interfaces for TaskSwitch plugin
+// Type definitions and interfaces for RoleSwitch plugin
 
 export interface Role {
 	id: string;
@@ -22,7 +22,7 @@ export interface Session {
 	notes: Note[];
 }
 
-export interface TaskSwitchSettings {
+export interface RoleSwitchSettings {
 	transitionSeconds: number;
 	minSessionSeconds: number;
 	showStatusBar: boolean;
@@ -30,7 +30,7 @@ export interface TaskSwitchSettings {
 	borderOpacity: number;
 }
 
-export interface TaskSwitchState {
+export interface RoleSwitchState {
 	activeRoleId: string | null;
 	activeSessionId: string | null;
 	activeStartAt: string | null;
@@ -38,7 +38,7 @@ export interface TaskSwitchState {
 	lockUntil: string | null;
 }
 
-export interface TaskSwitchEvent {
+export interface RoleSwitchEvent {
 	id: string;
 	type: 'start' | 'end' | 'switch' | 'cancelTransition';
 	roleId: string;
@@ -53,14 +53,14 @@ export interface TaskSwitchEvent {
 	};
 }
 
-export interface TaskSwitchData {
+export interface RoleSwitchData {
 	roles: Role[];
-	events: TaskSwitchEvent[];
-	state: TaskSwitchState;
-	settings: TaskSwitchSettings;
+	events: RoleSwitchEvent[];
+	state: RoleSwitchState;
+	settings: RoleSwitchSettings;
 }
 
-export const DEFAULT_SETTINGS: TaskSwitchSettings = {
+export const DEFAULT_SETTINGS: RoleSwitchSettings = {
 	transitionSeconds: 30,
 	minSessionSeconds: 300,
 	showStatusBar: true,
@@ -68,4 +68,4 @@ export const DEFAULT_SETTINGS: TaskSwitchSettings = {
 	borderOpacity: 0.3
 };
 
-export const TASKSWITCH_VIEW_TYPE = 'taskswitch-view';
+export const ROLESWITCH_VIEW_TYPE = 'role-switch-view';

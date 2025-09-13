@@ -1,52 +1,52 @@
-// TaskSwitch Plugin - Main Entry Point
+// RoleSwitch Plugin - Main Entry Point
 
 import { Plugin, Notice, TFile } from 'obsidian';
 import { 
-	TaskSwitchData, 
-	TaskSwitchSettings, 
+	RoleSwitchData, 
+	RoleSwitchSettings, 
 	DEFAULT_SETTINGS, 
-	TASKSWITCH_VIEW_TYPE,
+	ROLESWITCH_VIEW_TYPE,
 	Role,
 	Note,
 	Session,
-	TaskSwitchEvent
+	RoleSwitchEvent
 } from './src/types';
 import { Utils } from './src/utils';
-import { TaskSwitchView } from './src/views/SidePanelView';
+import { RoleSwitchView } from './src/views/SidePanelView';
 import { TransitionModal, RolePickerModal, NoteEditModal, RoleDashboardModal } from './src/views/Modals';
-import { TaskSwitchSettingsTab } from './src/settings/Settings';
+import { RoleSwitchSettingsTab } from './src/settings/Settings';
 
-export default class TaskSwitchPlugin extends Plugin {
-	data: TaskSwitchData;
+export default class RoleSwitchPlugin extends Plugin {
+	data: RoleSwitchData;
 	statusBarItem: HTMLElement | null = null;
 	borderEl: HTMLElement | null = null;
 
 	async onload() {
-		console.log('TaskSwitchPlugin: onload called');
+		console.log('RoleSwitchPlugin: onload called');
 		await this.loadPluginData();
-		console.log('TaskSwitchPlugin: Plugin data loaded');
+		console.log('RoleSwitchPlugin: Plugin data loaded');
 		
 		// Register side panel view
-		console.log('TaskSwitchPlugin: Registering view type:', TASKSWITCH_VIEW_TYPE);
-		this.registerView(TASKSWITCH_VIEW_TYPE, (leaf) => {
-			console.log('TaskSwitchPlugin: Creating TaskSwitchView for leaf:', leaf);
-			return new TaskSwitchView(leaf, this);
+		console.log('RoleSwitchPlugin: Registering view type:', ROLESWITCH_VIEW_TYPE);
+		this.registerView(ROLESWITCH_VIEW_TYPE, (leaf) => {
+			console.log('RoleSwitchPlugin: Creating RoleSwitchView for leaf:', leaf);
+			return new RoleSwitchView(leaf, this);
 		});
-		console.log('TaskSwitchPlugin: View registered successfully');
+		console.log('RoleSwitchPlugin: View registered successfully');
 		
 		// Add ribbon icon for side panel
-		console.log('TaskSwitchPlugin: Adding ribbon icon...');
-		this.addRibbonIcon('clock', 'TaskSwitch Panel', () => {
-			console.log('TaskSwitchPlugin: Ribbon icon clicked, activating view...');
+		console.log('RoleSwitchPlugin: Adding ribbon icon...');
+		this.addRibbonIcon('clock', 'RoleSwitch Panel', () => {
+			console.log('RoleSwitchPlugin: Ribbon icon clicked, activating view...');
 			this.activateView();
 		});
-		console.log('TaskSwitchPlugin: Ribbon icon added');
+		console.log('RoleSwitchPlugin: Ribbon icon added');
 
 		// Register commands
 		this.registerCommands();
 
 		// Add settings tab
-		this.addSettingTab(new TaskSwitchSettingsTab(this.app, this));
+		this.addSettingTab(new RoleSwitchSettingsTab(this.app, this));
 
 		// Initialize UI elements
 		this.updateStatusBar();
@@ -68,7 +68,7 @@ export default class TaskSwitchPlugin extends Plugin {
 	// ====================
 
 	async loadPluginData() {
-		const defaultData: TaskSwitchData = {
+		const defaultData: RoleSwitchData = {
 			roles: [],
 			events: [],
 			state: {
@@ -93,7 +93,7 @@ export default class TaskSwitchPlugin extends Plugin {
 	// ====================
 
 	createRole(name: string, colorHex: string, description?: string, icon?: string): Role {
-		console.log('TaskSwitchPlugin.createRole called with:', { name, colorHex, description, icon });
+		console.log('RoleSwitchPlugin.createRole called with:', { name, colorHex, description, icon });
 		
 		const role: Role = {
 			id: Utils.generateId(),
@@ -103,16 +103,16 @@ export default class TaskSwitchPlugin extends Plugin {
 			icon
 		};
 
-		console.log('TaskSwitchPlugin.createRole: Created role object:', role);
+		console.log('RoleSwitchPlugin.createRole: Created role object:', role);
 		
 		this.data.roles.push(role);
-		console.log('TaskSwitchPlugin.createRole: Added to roles array, total roles:', this.data.roles.length);
+		console.log('RoleSwitchPlugin.createRole: Added to roles array, total roles:', this.data.roles.length);
 		
 		this.savePluginData();
-		console.log('TaskSwitchPlugin.createRole: Saved plugin data');
+		console.log('RoleSwitchPlugin.createRole: Saved plugin data');
 		
 		this.refreshSidePanel();
-		console.log('TaskSwitchPlugin.createRole: Refreshed side panel');
+		console.log('RoleSwitchPlugin.createRole: Refreshed side panel');
 		
 		return role;
 	}
@@ -355,41 +355,41 @@ export default class TaskSwitchPlugin extends Plugin {
 	// ====================
 
 	async activateView() {
-		console.log('TaskSwitchPlugin: activateView called');
+		console.log('RoleSwitchPlugin: activateView called');
 		const { workspace } = this.app;
 		
-		console.log('TaskSwitchPlugin: Looking for existing leaf...');
-		let leaf = workspace.getLeavesOfType(TASKSWITCH_VIEW_TYPE)[0];
-		console.log('TaskSwitchPlugin: Existing leaf found:', !!leaf);
+		console.log('RoleSwitchPlugin: Looking for existing leaf...');
+		let leaf = workspace.getLeavesOfType(ROLESWITCH_VIEW_TYPE)[0];
+		console.log('RoleSwitchPlugin: Existing leaf found:', !!leaf);
 		
 		if (!leaf) {
-			console.log('TaskSwitchPlugin: No existing leaf, creating new one...');
+			console.log('RoleSwitchPlugin: No existing leaf, creating new one...');
 			const leftLeaf = workspace.getLeftLeaf(false);
-			console.log('TaskSwitchPlugin: Left leaf available:', !!leftLeaf);
+			console.log('RoleSwitchPlugin: Left leaf available:', !!leftLeaf);
 			
 			if (leftLeaf) {
 				leaf = leftLeaf;
-				console.log('TaskSwitchPlugin: Setting view state to', TASKSWITCH_VIEW_TYPE);
-				await leaf.setViewState({ type: TASKSWITCH_VIEW_TYPE, active: true });
-				console.log('TaskSwitchPlugin: View state set successfully');
+				console.log('RoleSwitchPlugin: Setting view state to', ROLESWITCH_VIEW_TYPE);
+				await leaf.setViewState({ type: ROLESWITCH_VIEW_TYPE, active: true });
+				console.log('RoleSwitchPlugin: View state set successfully');
 			} else {
-				console.error('TaskSwitchPlugin: No left leaf available!');
+				console.error('RoleSwitchPlugin: No left leaf available!');
 			}
 		}
 		
 		if (leaf) {
-			console.log('TaskSwitchPlugin: Revealing leaf...');
+			console.log('RoleSwitchPlugin: Revealing leaf...');
 			workspace.revealLeaf(leaf);
-			console.log('TaskSwitchPlugin: Leaf revealed successfully');
+			console.log('RoleSwitchPlugin: Leaf revealed successfully');
 		} else {
-			console.error('TaskSwitchPlugin: No leaf available to reveal!');
+			console.error('RoleSwitchPlugin: No leaf available to reveal!');
 		}
 	}
 
 	refreshSidePanel(): void {
-		const leaves = this.app.workspace.getLeavesOfType(TASKSWITCH_VIEW_TYPE);
+		const leaves = this.app.workspace.getLeavesOfType(ROLESWITCH_VIEW_TYPE);
 		leaves.forEach(leaf => {
-			if (leaf.view instanceof TaskSwitchView) {
+			if (leaf.view instanceof RoleSwitchView) {
 				leaf.view.refresh();
 			}
 		});
@@ -462,8 +462,8 @@ export default class TaskSwitchPlugin extends Plugin {
 	private registerCommands(): void {
 		// Open side panel
 		this.addCommand({
-			id: 'open-taskswitch-panel',
-			name: 'Open TaskSwitch Panel',
+			id: 'open-role-switch-panel',
+			name: 'Open Role Switch Panel',
 			callback: () => {
 				this.activateView();
 			}

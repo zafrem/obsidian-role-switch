@@ -1,10 +1,10 @@
-# TaskSwitch - Obsidian Plugin
+# RoleSwitch - Obsidian Plugin
 
 A sophisticated productivity plugin for Obsidian that reduces context-switching costs through enforced session locks, transition windows, and comprehensive role-based task management with real-time tracking and analytics.
 
 ## Overview
 
-TaskSwitch transforms how you manage focus and productivity in Obsidian by implementing intelligent anti-micro-switching mechanisms. Create custom roles with distinct visual identities, enforce minimum session durations to prevent impulsive task-switching, and gain deep insights into your work patterns through comprehensive analytics and session tracking.
+RoleSwitch transforms how you manage focus and productivity in Obsidian by implementing intelligent anti-micro-switching mechanisms. Create custom roles with distinct visual identities, enforce minimum session durations to prevent impulsive task-switching, and gain deep insights into your work patterns through comprehensive analytics and session tracking.
 
 ## ✨ Core Features
 
@@ -81,17 +81,17 @@ TaskSwitch transforms how you manage focus and productivity in Obsidian by imple
    - `main.js` (compiled plugin code)
    - `manifest.json` (plugin metadata)
    - `styles.css` (optional styling)
-2. Create directory: `<your-vault>/.obsidian/plugins/taskswitch/`
+2. Create directory: `<your-vault>/.obsidian/plugins/role-switch/`
 3. Place all files in the created directory
 4. Restart Obsidian or reload plugins
-5. Enable "TaskSwitch" in **Settings → Community plugins**
+5. Enable "RoleSwitch" in **Settings → Community plugins**
 
 #### Development Installation
 1. Clone this repository into your vault's plugins folder:
    ```bash
    cd <your-vault>/.obsidian/plugins/
-   git clone <repository-url> taskswitch
-   cd taskswitch
+   git clone <repository-url> role-switch
+   cd role-switch
    ```
 2. Install dependencies and build:
    ```bash
@@ -101,7 +101,7 @@ TaskSwitch transforms how you manage focus and productivity in Obsidian by imple
 3. Enable the plugin in Obsidian settings
 
 ### Quick Setup
-1. **Access Settings**: Go to **Settings → TaskSwitch**
+1. **Access Settings**: Go to **Settings → RoleSwitch**
 2. **Create Your First Role**: 
    - Click "Add Role"
    - Choose a name (e.g., "Deep Work")
@@ -109,13 +109,13 @@ TaskSwitch transforms how you manage focus and productivity in Obsidian by imple
    - Pick a color
    - Add optional description
 3. **Configure Timing**: Adjust session and transition durations to match your workflow
-4. **Open Panel**: Click the clock icon in the ribbon or use **Cmd/Ctrl + P → "Open TaskSwitch Panel"**
+4. **Open Panel**: Click the clock icon in the ribbon or use **Cmd/Ctrl + P → "Open RoleSwitch Panel"**
 5. **Start Your First Session**: Click on your role in the side panel
 
 ## 📱 Interface Guide
 
 ### Side Panel Dashboard
-The main interface for TaskSwitch, accessible via the ribbon clock icon:
+The main interface for RoleSwitch, accessible via the ribbon clock icon:
 
 - **Header**: Plugin branding with gear icon
 - **Roles Section**: 
@@ -148,7 +148,7 @@ For starting new sessions or switching roles:
 - **Action Context**: Different behavior for "start" vs "switch" operations
 
 ### Settings Interface
-Accessed via **Settings → TaskSwitch**:
+Accessed via **Settings → RoleSwitch**:
 
 #### Role Management
 - **Role List**: Visual display of all roles with icons and colors
@@ -292,7 +292,7 @@ Accessed via **Settings → TaskSwitch**:
 Access via Command Palette (**Ctrl/Cmd + P**):
 
 ### Core Commands
-- **`Open TaskSwitch Panel`**: Opens the side panel dashboard
+- **`Open RoleSwitch Panel`**: Opens the side panel dashboard
 - **`Start/Resume Role`**: Opens role picker to start a new session
 - **`Switch Role`**: Opens role picker to switch from current session (requires active session)
 - **`End Current Role`**: Immediately ends the current active session
@@ -303,24 +303,24 @@ Access via Command Palette (**Ctrl/Cmd + P**):
 - **`Open Analytics`**: Detailed analytics view (implementation pending)
 
 ### Ribbon Actions
-- **Clock Icon**: Quick access to side panel (same as "Open TaskSwitch Panel")
+- **Clock Icon**: Quick access to side panel (same as "Open RoleSwitch Panel")
 
 ### Keyboard Shortcuts
-Currently no default keyboard shortcuts are assigned. You can assign custom shortcuts to any command via **Settings → Hotkeys → TaskSwitch**.
+Currently no default keyboard shortcuts are assigned. You can assign custom shortcuts to any command via **Settings → Hotkeys → RoleSwitch**.
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
 #### Plugin Not Loading
-- **Solution**: Ensure `main.js`, `manifest.json` are in `.obsidian/plugins/taskswitch/`
+- **Solution**: Ensure `main.js`, `manifest.json` are in `.obsidian/plugins/role-switch/`
 - **Check**: Plugin is enabled in **Settings → Community plugins**
 - **Restart**: Reload Obsidian or restart the application
 
 #### Side Panel Not Opening
 - **Check Console**: Open Developer Tools (Ctrl/Cmd + Shift + I) for error messages
 - **Ribbon Icon**: Ensure clock icon is visible in left ribbon
-- **Command**: Try **Cmd/Ctrl + P → "Open TaskSwitch Panel"**
+- **Command**: Try **Cmd/Ctrl + P → "Open RoleSwitch Panel"**
 
 #### Roles Not Saving
 - **Permissions**: Check vault directory write permissions
@@ -359,7 +359,7 @@ The plugin includes extensive console logging. Open Developer Tools to see:
 - Error messages and stack traces
 
 #### Data Inspection
-Plugin data is stored in `.obsidian/plugins/taskswitch/data.json`. You can inspect this file to understand the current state, but avoid manual editing.
+Plugin data is stored in `.obsidian/plugins/role-switch/data.json`. You can inspect this file to understand the current state, but avoid manual editing.
 
 ### Getting Help
 
@@ -375,7 +375,7 @@ Plugin data is stored in `.obsidian/plugins/taskswitch/data.json`. You can inspe
 1. **Clone Repository**:
    ```bash
    git clone <repository-url>
-   cd obsidian-taskswitch
+   cd obsidian-role-switch
    ```
 
 2. **Install Dependencies**:
@@ -394,7 +394,7 @@ Plugin data is stored in `.obsidian/plugins/taskswitch/data.json`. You can inspe
    ```
 
 5. **Testing**:
-   - Copy built files to test vault: `.obsidian/plugins/taskswitch/`
+   - Copy built files to test vault: `.obsidian/plugins/role-switch/`
    - Enable plugin in Obsidian settings
    - Test functionality and check console for errors
 
@@ -464,7 +464,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 - **Minimum Obsidian Version**: 1.6.0
 - **Mobile Support**: Full (iOS and Android)
 - **Desktop Support**: Windows, macOS, Linux
-- **Plugin ID**: `taskswitch`
+- **Plugin ID**: `role-switch`
 
 ## 📋 Changelog
 

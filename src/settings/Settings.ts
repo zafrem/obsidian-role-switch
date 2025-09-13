@@ -5,12 +5,12 @@ import { Role, DEFAULT_SETTINGS } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { IconPickerModal } from '../views/Modals';
-import type TaskSwitchPlugin from '../../main';
+import type RoleSwitchPlugin from '../../main';
 
-export class TaskSwitchSettingsTab extends PluginSettingTab {
-	plugin: TaskSwitchPlugin;
+export class RoleSwitchSettingsTab extends PluginSettingTab {
+	plugin: RoleSwitchPlugin;
 
-	constructor(app: App, plugin: TaskSwitchPlugin) {
+	constructor(app: App, plugin: RoleSwitchPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -19,7 +19,7 @@ export class TaskSwitchSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h1', { text: 'TaskSwitch Settings' });
+		containerEl.createEl('h1', { text: 'RoleSwitch Settings' });
 
 		// Role Management Section (Top Priority)
 		this.createRoleManagementSection(containerEl);
@@ -203,18 +203,18 @@ export class TaskSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private showRoleEditModal(role?: Role): void {
-		console.log('TaskSwitchSettingsTab: showRoleEditModal called with role:', role);
+		console.log('RoleSwitchSettingsTab: showRoleEditModal called with role:', role);
 		const modal = new RoleEditModal(this.app, this.plugin, role);
 		
 		// Store the original onClose and add our refresh logic
 		const originalOnClose = modal.onClose.bind(modal);
 		modal.onClose = () => {
-			console.log('TaskSwitchSettingsTab: Modal closing, refreshing settings');
+			console.log('RoleSwitchSettingsTab: Modal closing, refreshing settings');
 			originalOnClose();
 			this.display(); // Refresh settings when modal closes
 		};
 		
-		console.log('TaskSwitchSettingsTab: Opening modal');
+		console.log('RoleSwitchSettingsTab: Opening modal');
 		modal.open();
 	}
 
@@ -248,14 +248,14 @@ export class TaskSwitchSettingsTab extends PluginSettingTab {
 }
 
 class RoleEditModal extends Modal {
-	private plugin: TaskSwitchPlugin;
+	private plugin: RoleSwitchPlugin;
 	private role: Role | null;
 	private nameInput: HTMLInputElement;
 	private descriptionInput: HTMLTextAreaElement;
 	private colorInput: HTMLInputElement;
 	private selectedIcon: string | null = null;
 
-	constructor(app: App, plugin: TaskSwitchPlugin, role?: Role) {
+	constructor(app: App, plugin: RoleSwitchPlugin, role?: Role) {
 		super(app);
 		this.plugin = plugin;
 		this.role = role || null;

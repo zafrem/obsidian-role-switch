@@ -1,6 +1,6 @@
-// Utility functions for TaskSwitch plugin
+// Utility functions for RoleSwitch plugin
 
-import { Session, TaskSwitchEvent } from './types';
+import { Session, RoleSwitchEvent } from './types';
 
 export class Utils {
 	/**
@@ -81,7 +81,7 @@ export class Utils {
 	 * Derive sessions from events
 	 */
 	static deriveSessionsFromEvents(
-		events: TaskSwitchEvent[], 
+		events: RoleSwitchEvent[], 
 		startDate?: Date, 
 		endDate?: Date
 	): Session[] {
@@ -149,7 +149,7 @@ export class Utils {
 	 * Get sessions for a specific date range with duration calculations
 	 */
 	static getSessionsWithDurations(
-		events: TaskSwitchEvent[],
+		events: RoleSwitchEvent[],
 		startDate?: Date,
 		endDate?: Date,
 		activeSessionId?: string

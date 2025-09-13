@@ -1,20 +1,20 @@
-/* TaskSwitch Plugin Styles */
+/* RoleSwitch Plugin Styles */
 
 /* Side Panel View */
-.taskswitch-view {
+.role-switch-view {
 	padding: 16px;
 	height: 100%;
 	overflow-y: auto;
 }
 
-.taskswitch-view .side-panel-header {
+.role-switch-view .side-panel-header {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	margin-bottom: 16px;
 }
 
-.taskswitch-view .header-icon {
+.role-switch-view .header-icon {
 	width: 20px;
 	height: 20px;
 	display: flex;
@@ -23,7 +23,7 @@
 	color: var(--interactive-accent);
 }
 
-.taskswitch-view .header-title {
+.role-switch-view .header-title {
 	margin: 0;
 	font-size: 16px;
 	font-weight: 600;
@@ -446,7 +446,7 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-	.taskswitch-view {
+	.role-switch-view {
 		padding: 12px;
 	}
 	
