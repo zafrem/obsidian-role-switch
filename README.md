@@ -7,6 +7,11 @@ A productivity plugin for Obsidian that reduces context-switching costs through 
 ## Demo
 [![Demo](./image/Demo.gif)](./image/Demo.gif)
 
+### Switch
+[![Demo1](./image/Demo1.jpg)](./image/Demo1.jpg)
+[![Demo2](./image/Demo2.jpg)](./image/Demo2.jpg)
+
+
 ## Features
 
 - **Role-Based Task Management**: Create custom roles with unique colors and icons
