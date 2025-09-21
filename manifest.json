@@ -3,7 +3,7 @@
 	"name": "RoleSwitch",
 	"version": "0.1.0",
 	"minAppVersion": "1.6.0",
-	"description": "A lightweight plugin that reduces context-switching cost with enforced transition windows and session tracking.",
+	"description": "Switch between different work roles (developer, writer, researcher, etc.) with intentional transitions and session tracking.",
 	"author": "Zafrem",
 	"authorUrl": "https://github.com/zafrem",
 	"isDesktopOnly": false
