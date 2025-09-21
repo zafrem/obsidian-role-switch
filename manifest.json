@@ -1,6 +1,6 @@
 {
 	"id": "role-switch",
-	"name": "RoleSwitch",
+	"name": "Role Switch",
 	"version": "0.1.0",
 	"minAppVersion": "1.6.0",
 	"description": "Switch between different work roles (developer, writer, researcher, etc.) with intentional transitions and session tracking.",
