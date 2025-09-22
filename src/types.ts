@@ -69,3 +69,16 @@ export const DEFAULT_SETTINGS: RoleSwitchSettings = {
 };
 
 export const ROLESWITCH_VIEW_TYPE = 'role-switch-view';
+
+// Interface for Obsidian's color picker component
+export interface ColorPickerComponent {
+	inputEl?: HTMLInputElement;
+	input?: HTMLInputElement;
+	getValue(): string;
+	setValue(value: string): this;
+}
+
+// Interface for the RoleEditModal to handle color component properly
+export interface RoleEditModalInterface {
+	colorComponent?: ColorPickerComponent;
+}

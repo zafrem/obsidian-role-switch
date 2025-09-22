@@ -30,30 +30,22 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	async onOpen() {
-		console.log('RoleSwitchView: onOpen called');
-		console.log('RoleSwitchView: containerEl:', this.containerEl);
-		console.log('RoleSwitchView: containerEl children:', this.containerEl.children.length);
-		
 		const container = this.containerEl.children[1];
-		console.log('RoleSwitchView: container element:', container);
-		
+
 		if (!container) {
 			console.error('RoleSwitchView: No container element found!');
 			return;
 		}
-		
+
 		container.empty();
 		container.addClass('role-switch-view');
-		console.log('RoleSwitchView: Container prepared, adding styles...');
 
 		// Add custom styles for side panel
 		this.addSidePanelStyles();
-		console.log('RoleSwitchView: Styles added, creating dashboard...');
 
 		// Create side panel dashboard
 		try {
 			this.createSidePanelDashboard(container as HTMLElement);
-			console.log('RoleSwitchView: Dashboard created successfully');
 		} catch (error) {
 			console.error('RoleSwitchView: Error creating dashboard:', error);
 			// Fallback: create a simple test display
@@ -102,63 +94,45 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	private createSidePanelDashboard(container: HTMLElement): void {
-		console.log('RoleSwitchView: createSidePanelDashboard called');
-		console.log('RoleSwitchView: Container for dashboard:', container);
-		
 		// Header with plugin branding
-		console.log('RoleSwitchView: Creating header...');
 		const header = container.createDiv({ cls: 'side-panel-header' });
-		console.log('RoleSwitchView: Header created:', header);
-		
+
 		// RoleSwitch icon using existing icon library
 		const headerIcon = header.createDiv({ cls: 'header-icon' });
 		try {
 			const iconElement = IconLibrary.createIconElement('gear', 20, 'var(--interactive-accent)');
-			console.log('RoleSwitchView: Icon element created:', iconElement);
 			if (iconElement.firstChild) {
 				headerIcon.appendChild(iconElement.firstChild as Node);
-				console.log('RoleSwitchView: Icon added to header');
-			} else {
-				console.warn('RoleSwitchView: Icon element has no firstChild');
 			}
 		} catch (error) {
 			console.error('RoleSwitchView: Error creating header icon:', error);
 		}
-		
-		const headerTitle = header.createEl('h2', { 
-			text: 'RoleSwitch', 
+
+		const headerTitle = header.createEl('h2', {
+			text: 'RoleSwitch',
 			cls: 'header-title'
 		});
-		console.log('RoleSwitchView: Header title created:', headerTitle);
 
 		// Roles section (moved to top)
-		console.log('RoleSwitchView: Creating roles section...');
 		try {
 			this.createCompactRolesSection(container);
-			console.log('RoleSwitchView: Roles section created');
 		} catch (error) {
 			console.error('RoleSwitchView: Error creating roles section:', error);
 		}
 
-		// Quick actions section  
-		console.log('RoleSwitchView: Creating quick actions section...');
+		// Quick actions section
 		try {
 			this.createQuickActionsSection(container);
-			console.log('RoleSwitchView: Quick actions section created');
 		} catch (error) {
 			console.error('RoleSwitchView: Error creating quick actions section:', error);
 		}
 
 		// Current status section
-		console.log('RoleSwitchView: Creating status section...');
 		try {
 			this.createCompactStatusSection(container);
-			console.log('RoleSwitchView: Status section created');
 		} catch (error) {
 			console.error('RoleSwitchView: Error creating status section:', error);
 		}
-		
-		console.log('RoleSwitchView: Dashboard creation completed');
 	}
 
 	private createCompactStatusSection(container: HTMLElement): void {
@@ -315,7 +289,6 @@ export class RoleSwitchView extends ItemView {
 			cls: 'quick-action-btn'
 		});
 		dashboardBtn.addEventListener('click', () => {
-			console.log('RoleSwitchView: Dashboard button clicked');
 			try {
 				new RoleDashboardModal(this.app, this.plugin).open();
 			} catch (error) {
@@ -417,39 +390,34 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	private createFallbackDashboard(container: HTMLElement): void {
-		console.log('RoleSwitchView: Creating fallback dashboard');
-		
 		// Simple fallback content
-		container.createEl('h2', { 
-			text: 'RoleSwitch Panel', 
-			attr: { style: 'color: var(--text-accent); margin: 20px 0;' }
+		container.createEl('h2', {
+			text: 'RoleSwitch Panel',
+			cls: 'fallback-dashboard-title'
 		});
-		
-		container.createEl('p', { 
-			text: 'Dashboard is loading...', 
-			attr: { style: 'color: var(--text-muted); margin: 10px 0;' }
+
+		container.createEl('p', {
+			text: 'Dashboard is loading...',
+			cls: 'fallback-dashboard-loading'
 		});
-		
+
 		// Show plugin data info
-		const infoDiv = container.createDiv({ 
-			attr: { style: 'margin: 20px 0; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 4px;' }
+		const infoDiv = container.createDiv({
+			cls: 'fallback-info-container'
 		});
-		
+
 		infoDiv.createEl('p', { text: `Roles count: ${this.plugin.data.roles.length}` });
 		infoDiv.createEl('p', { text: `Active role: ${this.plugin.data.state.activeRoleId || 'None'}` });
 		infoDiv.createEl('p', { text: `Events count: ${this.plugin.data.events.length}` });
-		
+
 		// Test button
-		const testBtn = container.createEl('button', { 
+		const testBtn = container.createEl('button', {
 			text: 'Test Dashboard',
-			attr: { style: 'padding: 8px 16px; margin: 10px 0; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;' }
+			cls: 'fallback-test-button'
 		});
 		testBtn.addEventListener('click', () => {
-			console.log('RoleSwitchView: Test button clicked');
 			new Notice('Dashboard is working!');
 		});
-		
-		console.log('RoleSwitchView: Fallback dashboard created');
 	}
 
 	private startRealtimeTimer(): void {

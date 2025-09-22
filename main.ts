@@ -22,25 +22,17 @@ export default class RoleSwitchPlugin extends Plugin {
 	borderEl: HTMLElement | null = null;
 
 	async onload() {
-		console.log('RoleSwitchPlugin: onload called');
 		await this.loadPluginData();
-		console.log('RoleSwitchPlugin: Plugin data loaded');
-		
+
 		// Register side panel view
-		console.log('RoleSwitchPlugin: Registering view type:', ROLESWITCH_VIEW_TYPE);
 		this.registerView(ROLESWITCH_VIEW_TYPE, (leaf) => {
-			console.log('RoleSwitchPlugin: Creating RoleSwitchView for leaf:', leaf);
 			return new RoleSwitchView(leaf, this);
 		});
-		console.log('RoleSwitchPlugin: View registered successfully');
-		
+
 		// Add ribbon icon for side panel
-		console.log('RoleSwitchPlugin: Adding ribbon icon...');
 		this.addRibbonIcon('clock', 'RoleSwitch Panel', () => {
-			console.log('RoleSwitchPlugin: Ribbon icon clicked, activating view...');
 			this.activateView();
 		});
-		console.log('RoleSwitchPlugin: Ribbon icon added');
 
 		// Register commands
 		this.registerCommands();
@@ -93,8 +85,6 @@ export default class RoleSwitchPlugin extends Plugin {
 	// ====================
 
 	createRole(name: string, colorHex: string, description?: string, icon?: string): Role {
-		console.log('RoleSwitchPlugin.createRole called with:', { name, colorHex, description, icon });
-		
 		const role: Role = {
 			id: Utils.generateId(),
 			name,
@@ -103,17 +93,10 @@ export default class RoleSwitchPlugin extends Plugin {
 			icon
 		};
 
-		console.log('RoleSwitchPlugin.createRole: Created role object:', role);
-		
 		this.data.roles.push(role);
-		console.log('RoleSwitchPlugin.createRole: Added to roles array, total roles:', this.data.roles.length);
-		
 		this.savePluginData();
-		console.log('RoleSwitchPlugin.createRole: Saved plugin data');
-		
 		this.refreshSidePanel();
-		console.log('RoleSwitchPlugin.createRole: Refreshed side panel');
-		
+
 		return role;
 	}
 
@@ -355,32 +338,24 @@ export default class RoleSwitchPlugin extends Plugin {
 	// ====================
 
 	async activateView() {
-		console.log('RoleSwitchPlugin: activateView called');
 		const { workspace } = this.app;
-		
-		console.log('RoleSwitchPlugin: Looking for existing leaf...');
+
 		let leaf = workspace.getLeavesOfType(ROLESWITCH_VIEW_TYPE)[0];
-		console.log('RoleSwitchPlugin: Existing leaf found:', !!leaf);
-		
+
 		if (!leaf) {
-			console.log('RoleSwitchPlugin: No existing leaf, creating new one...');
 			const leftLeaf = workspace.getLeftLeaf(false);
-			console.log('RoleSwitchPlugin: Left leaf available:', !!leftLeaf);
-			
+
 			if (leftLeaf) {
 				leaf = leftLeaf;
-				console.log('RoleSwitchPlugin: Setting view state to', ROLESWITCH_VIEW_TYPE);
 				await leaf.setViewState({ type: ROLESWITCH_VIEW_TYPE, active: true });
-				console.log('RoleSwitchPlugin: View state set successfully');
 			} else {
 				console.error('RoleSwitchPlugin: No left leaf available!');
+				return;
 			}
 		}
-		
+
 		if (leaf) {
-			console.log('RoleSwitchPlugin: Revealing leaf...');
 			workspace.revealLeaf(leaf);
-			console.log('RoleSwitchPlugin: Leaf revealed successfully');
 		} else {
 			console.error('RoleSwitchPlugin: No leaf available to reveal!');
 		}
@@ -403,6 +378,7 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		if (!this.statusBarItem) {
 			this.statusBarItem = this.addStatusBarItem();
+			this.statusBarItem.addClass('status-bar-item');
 		}
 
 		if (this.data.state.activeRoleId) {
@@ -435,14 +411,8 @@ export default class RoleSwitchPlugin extends Plugin {
 		if (!role) return;
 
 		this.borderEl = document.createElement('div');
-		this.borderEl.style.position = 'fixed';
-		this.borderEl.style.top = '0';
-		this.borderEl.style.left = '0';
-		this.borderEl.style.right = '0';
-		this.borderEl.style.bottom = '0';
-		this.borderEl.style.border = `3px solid ${role.colorHex}`;
-		this.borderEl.style.pointerEvents = 'none';
-		this.borderEl.style.zIndex = '9999';
+		this.borderEl.addClass('workspace-border');
+		this.borderEl.style.borderColor = role.colorHex;
 		this.borderEl.style.opacity = this.data.settings.borderOpacity.toString();
 
 		document.body.appendChild(this.borderEl);
@@ -462,8 +432,8 @@ export default class RoleSwitchPlugin extends Plugin {
 	private registerCommands(): void {
 		// Open side panel
 		this.addCommand({
-			id: 'open-role-switch-panel',
-			name: 'Open Role Switch Panel',
+			id: 'open-panel',
+			name: 'Open panel',
 			callback: () => {
 				this.activateView();
 			}
@@ -471,8 +441,8 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		// Open dashboard
 		this.addCommand({
-			id: 'open-role-dashboard',
-			name: 'Open Role Dashboard',
+			id: 'open-dashboard',
+			name: 'Open dashboard',
 			callback: () => {
 				new RoleDashboardModal(this.app, this).open();
 			}
@@ -480,8 +450,8 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		// Start/Resume role
 		this.addCommand({
-			id: 'start-role',
-			name: 'Start/Resume Role',
+			id: 'start-session',
+			name: 'Start session',
 			callback: () => {
 				new RolePickerModal(this.app, this, 'start').open();
 			}
@@ -489,8 +459,8 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		// Switch role
 		this.addCommand({
-			id: 'switch-role',
-			name: 'Switch Role',
+			id: 'switch-session',
+			name: 'Switch session',
 			callback: () => {
 				if (!this.data.state.activeRoleId) {
 					new Notice('No active session to switch from');
@@ -502,8 +472,8 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		// End current role
 		this.addCommand({
-			id: 'end-current-role',
-			name: 'End Current Role',
+			id: 'end-session',
+			name: 'End current session',
 			callback: () => {
 				this.endSession();
 			}
@@ -512,7 +482,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		// Add note command
 		this.addCommand({
 			id: 'add-note',
-			name: 'Add Note to Current Session',
+			name: 'Add note to current session',
 			callback: () => {
 				if (!this.data.state.activeSessionId) {
 					new Notice('No active session to add note to');

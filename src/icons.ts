@@ -66,32 +66,28 @@ export class IconLibrary {
 		container.style.justifyContent = 'center';
 		container.style.width = size + 'px';
 		container.style.height = size + 'px';
-		
+
 		const iconSvg = this.getIcon(iconKey);
-		console.log('IconLibrary.createIconElement called with:', iconKey, 'SVG found:', !!iconSvg);
-		
+
 		if (iconSvg) {
 			try {
-				// Create a temporary container and set innerHTML directly
-				const tempDiv = document.createElement('div');
-				tempDiv.innerHTML = iconSvg;
-				
-				const svg = tempDiv.querySelector('svg');
-				console.log('SVG element found via innerHTML:', !!svg, svg?.tagName);
-				
+				// Parse SVG string using DOMParser
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(iconSvg, 'image/svg+xml');
+				const svg = doc.querySelector('svg');
+
 				if (svg) {
 					// Set attributes safely
 					svg.setAttribute('width', size.toString());
 					svg.setAttribute('height', size.toString());
 					svg.setAttribute('fill', color);
 					svg.style.display = 'block';
-					
-					// Clone the SVG and add to container
-					const clonedSvg = svg.cloneNode(true) as SVGElement;
-					container.appendChild(clonedSvg);
-					console.log('Container after appendChild:', container.innerHTML.substring(0, 100));
+
+					// Import and add the SVG node to container
+					const importedSvg = document.importNode(svg, true);
+					container.appendChild(importedSvg);
 				} else {
-					console.error('No SVG element found in parsed HTML for', iconKey);
+					console.error('No SVG element found in parsed SVG for', iconKey);
 					container.textContent = iconKey.charAt(0).toUpperCase();
 				}
 			} catch (error) {
@@ -99,18 +95,15 @@ export class IconLibrary {
 				container.textContent = iconKey.charAt(0).toUpperCase();
 			}
 		} else {
-			console.warn('No SVG found for icon key:', iconKey);
-			// Fallback text
+			// Fallback text for missing icons
 			container.textContent = iconKey.charAt(0).toUpperCase();
 		}
-		
+
 		return container;
 	}
 
 	static getAllIcons(): string[] {
-		const icons = Object.keys(this.ICONS);
-		console.log('IconLibrary.getAllIcons called, found', icons.length, 'icons:', icons.slice(0, 5));
-		return icons;
+		return Object.keys(this.ICONS);
 	}
 
 	static getIconsByCategory(): { [category: string]: string[] } {

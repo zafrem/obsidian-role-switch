@@ -26,8 +26,7 @@ export class TransitionModal extends Modal {
 		
 		// Make modal mobile-friendly
 		if (Platform.isMobile) {
-			contentEl.style.padding = '20px';
-			contentEl.style.maxWidth = '90vw';
+			contentEl.addClass('mobile');
 		}
 		
 		contentEl.createEl('div', { 
@@ -46,8 +45,7 @@ export class TransitionModal extends Modal {
 			text: 'Cancel'
 		});
 		if (Platform.isMobile) {
-			cancelBtn.style.padding = '12px';
-			cancelBtn.style.fontSize = '16px';
+			cancelBtn.addClass('mobile');
 		}
 		
 		// Start countdown
@@ -107,9 +105,7 @@ export class RolePickerModal extends Modal {
 
 		// Mobile responsive styling
 		if (Platform.isMobile) {
-			contentEl.style.padding = '15px';
-			contentEl.style.maxHeight = '80vh';
-			contentEl.style.overflowY = 'auto';
+			contentEl.addClass('role-picker-modal');
 		}
 
 		const title = this.mode === 'start' ? 'Start Role' : 'Switch Role';
@@ -124,14 +120,7 @@ export class RolePickerModal extends Modal {
 		}
 
 		const rolesGrid = contentEl.createDiv({
-			attr: {
-				style: `
-					display: grid;
-					grid-template-columns: repeat(auto-fill, minmax(${Platform.isMobile ? '120px' : '160px'}, 1fr));
-					gap: 12px;
-					margin-top: 20px;
-				`
-			}
+			cls: `role-picker-grid ${Platform.isMobile ? 'mobile' : ''}`
 		});
 
 		this.plugin.data.roles.forEach(role => {
@@ -143,51 +132,31 @@ export class RolePickerModal extends Modal {
 		const isActive = this.plugin.data.state.activeRoleId === role.id;
 
 		const card = container.createDiv({
-			attr: {
-				style: `
-					border: 2px solid ${isActive ? role.colorHex : 'var(--background-modifier-border)'};
-					border-radius: 8px;
-					padding: 16px;
-					cursor: pointer;
-					text-align: center;
-					transition: all 0.2s ease;
-					background: var(--background-primary);
-				`
-			}
+			cls: `role-card-picker ${isActive ? 'active' : ''}`
 		});
+
+		if (isActive) {
+			card.style.borderColor = role.colorHex;
+		}
 
 		// Hover effect
 		card.addEventListener('mouseenter', () => {
 			if (!isActive) {
 				card.style.borderColor = role.colorHex;
 			}
-			card.style.transform = 'translateY(-2px)';
-			card.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
 		});
 
 		card.addEventListener('mouseleave', () => {
 			if (!isActive) {
-				card.style.borderColor = 'var(--background-modifier-border)';
+				card.style.borderColor = '';
 			}
-			card.style.transform = 'none';
-			card.style.boxShadow = 'none';
 		});
 
 		// Role icon/color
 		const iconContainer = card.createDiv({
-			attr: {
-				style: `
-					width: 40px;
-					height: 40px;
-					border-radius: 50%;
-					background-color: ${role.colorHex};
-					margin: 0 auto 12px;
-					display: flex;
-					align-items: center;
-					justify-content: center;
-				`
-			}
+			cls: 'role-icon-picker'
 		});
+		iconContainer.style.backgroundColor = role.colorHex;
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconElement = IconLibrary.createIconElement(role.icon, 20, 'white');
@@ -195,25 +164,30 @@ export class RolePickerModal extends Modal {
 		}
 
 		// Role name
-		card.createEl('h3', {
+		const nameEl = card.createEl('h3', {
 			text: role.name,
-			attr: { style: `margin: 0 0 8px 0; color: ${isActive ? role.colorHex : 'var(--text-normal)'}; font-size: 14px;` }
+			cls: `role-name-picker ${isActive ? 'active' : ''}`
 		});
+
+		if (isActive) {
+			nameEl.style.color = role.colorHex;
+		}
 
 		// Role description
 		if (role.description) {
 			card.createDiv({
 				text: role.description,
-				attr: { style: 'color: var(--text-muted); font-size: 12px; margin-bottom: 8px;' }
+				cls: 'role-description-picker'
 			});
 		}
 
 		// Status indicator
 		if (isActive) {
-			card.createDiv({
+			const statusEl = card.createDiv({
 				text: '● Active',
-				attr: { style: `color: ${role.colorHex}; font-size: 12px; font-weight: 500;` }
+				cls: 'role-status-active'
 			});
+			statusEl.style.color = role.colorHex;
 		}
 
 		// Click handler
@@ -258,29 +232,30 @@ export class NoteEditModal extends Modal {
 		const title = this.note ? 'Edit Note' : 'Add Note';
 		contentEl.createEl('h2', { text: title });
 
-		this.textArea = contentEl.createEl('textarea');
-		this.textArea.style.width = '100%';
-		this.textArea.style.minHeight = '100px';
-		this.textArea.style.marginBottom = '16px';
-		this.textArea.style.resize = 'vertical';
+		this.textArea = contentEl.createEl('textarea', {
+			cls: 'note-edit-textarea'
+		});
 		
 		if (this.note) {
 			this.textArea.value = this.note.text;
 		}
 
-		const buttonContainer = contentEl.createDiv();
-		buttonContainer.style.textAlign = 'right';
+		const buttonContainer = contentEl.createDiv({
+			cls: 'note-edit-buttons'
+		});
 
-		const saveBtn = buttonContainer.createEl('button', { text: 'Save' });
-		saveBtn.style.marginRight = '8px';
+		const saveBtn = buttonContainer.createEl('button', {
+			text: 'Save',
+			cls: 'note-edit-save'
+		});
 		saveBtn.addEventListener('click', () => this.save());
 
 		// Delete button for existing notes
 		if (this.note) {
-			const deleteBtn = buttonContainer.createEl('button', { text: 'Delete' });
-			deleteBtn.style.marginRight = '10px';
-			deleteBtn.style.backgroundColor = '#e74c3c';
-			deleteBtn.style.color = 'white';
+			const deleteBtn = buttonContainer.createEl('button', {
+				text: 'Delete',
+				cls: 'note-edit-delete'
+			});
 			deleteBtn.addEventListener('click', () => this.delete());
 		}
 
@@ -344,9 +319,9 @@ export class RoleDashboardModal extends Modal {
 
 		// Mobile responsive styling
 		if (Platform.isMobile) {
-			contentEl.style.padding = '15px';
-			contentEl.style.maxHeight = '90vh';
-			contentEl.style.overflowY = 'auto';
+			contentEl.addClass('dashboard-modal mobile');
+		} else {
+			contentEl.addClass('dashboard-modal');
 		}
 
 		contentEl.createEl('h2', { text: 'Role Dashboard' });
@@ -363,15 +338,7 @@ export class RoleDashboardModal extends Modal {
 
 	private createAnalyticsSection(contentEl: HTMLElement): void {
 		const section = contentEl.createDiv({
-			attr: {
-				style: `
-					margin: 20px 0;
-					padding: 16px;
-					border: 1px solid var(--background-modifier-border);
-					border-radius: 8px;
-					background: var(--background-secondary);
-				`
-			}
+			cls: 'analytics-section-dashboard'
 		});
 
 		section.createEl('h3', {
@@ -421,26 +388,12 @@ export class RoleDashboardModal extends Modal {
 
 		// Analytics grid
 		const grid = section.createDiv({
-			attr: {
-				style: `
-					display: grid;
-					grid-template-columns: 1fr 1fr;
-					gap: 12px;
-					${Platform.isMobile ? 'grid-template-columns: 1fr;' : ''}
-				`
-			}
+			cls: `analytics-grid-dashboard ${Platform.isMobile ? 'mobile' : ''}`
 		});
 
 		// Today's stats
 		const todayCard = grid.createDiv({
-			attr: {
-				style: `
-					padding: 12px;
-					border-radius: 6px;
-					background: var(--background-primary);
-					border: 1px solid var(--background-modifier-border);
-				`
-			}
+			cls: 'analytics-card-dashboard'
 		});
 		todayCard.createEl('h4', {
 			text: 'Today',
@@ -457,14 +410,7 @@ export class RoleDashboardModal extends Modal {
 
 		// Averages card
 		const avgCard = grid.createDiv({
-			attr: {
-				style: `
-					padding: 12px;
-					border-radius: 6px;
-					background: var(--background-primary);
-					border: 1px solid var(--background-modifier-border);
-				`
-			}
+			cls: 'analytics-card-dashboard'
 		});
 		avgCard.createEl('h4', {
 			text: 'Averages',
@@ -481,15 +427,7 @@ export class RoleDashboardModal extends Modal {
 
 		// Week and month totals
 		const totalsCard = grid.createDiv({
-			attr: {
-				style: `
-					padding: 12px;
-					border-radius: 6px;
-					background: var(--background-primary);
-					border: 1px solid var(--background-modifier-border);
-					${Platform.isMobile ? '' : 'grid-column: span 2;'}
-				`
-			}
+			cls: `analytics-card-dashboard analytics-card-totals ${Platform.isMobile ? 'mobile' : ''}`
 		});
 		totalsCard.createEl('h4', {
 			text: 'Totals',
@@ -497,13 +435,7 @@ export class RoleDashboardModal extends Modal {
 		});
 
 		const totalsGrid = totalsCard.createDiv({
-			attr: {
-				style: `
-					display: grid;
-					grid-template-columns: 1fr 1fr;
-					gap: 8px;
-				`
-			}
+			cls: 'analytics-totals-grid'
 		});
 
 		totalsGrid.createEl('div', {
@@ -518,9 +450,7 @@ export class RoleDashboardModal extends Modal {
 
 	private createCurrentStatusSection(container: HTMLElement): void {
 		const statusSection = container.createDiv({
-			attr: {
-				style: 'background: var(--background-secondary); border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid var(--interactive-accent);'
-			}
+			cls: 'current-status-dashboard'
 		});
 
 		statusSection.createEl('h3', { text: 'Current Session', attr: { style: 'margin-top: 0; color: var(--interactive-accent);' } });
@@ -529,25 +459,14 @@ export class RoleDashboardModal extends Modal {
 			const activeRole = this.plugin.data.roles.find(r => r.id === this.plugin.data.state.activeRoleId);
 			if (activeRole) {
 				const activeInfo = statusSection.createDiv({
-					attr: { style: 'display: flex; align-items: center; margin-bottom: 10px;' }
+					cls: 'active-info'
 				});
 
 				// Active role color dot with icon
 				const activeRoleDot = activeInfo.createDiv({
-					attr: {
-						style: `
-							width: 24px;
-							height: 24px;
-							border-radius: 50%;
-							background-color: ${activeRole.colorHex};
-							margin-right: 12px;
-							box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-							display: flex;
-							align-items: center;
-							justify-content: center;
-						`
-					}
+					cls: 'active-role-dot'
 				});
+				activeRoleDot.style.backgroundColor = activeRole.colorHex;
 
 				// Add icon if available
 				if (activeRole.icon && IconLibrary.ICONS[activeRole.icon]) {
@@ -560,14 +479,14 @@ export class RoleDashboardModal extends Modal {
 				const roleInfo = activeInfo.createDiv();
 				roleInfo.createEl('strong', {
 					text: `Active: ${activeRole.name}`,
-					attr: { style: 'font-size: 18px; color: var(--text-normal);' }
+					cls: 'active-role-name'
 				});
 
 				// Create real-time session duration
 				if (this.plugin.data.state.activeStartAt) {
 					this.durationEl = roleInfo.createEl('div', {
 						text: 'Duration: 0s',
-						attr: { style: 'color: var(--text-muted); margin-top: 4px;' }
+						cls: 'active-duration'
 					});
 					this.updateDurationDisplay();
 				}
@@ -577,14 +496,14 @@ export class RoleDashboardModal extends Modal {
 					const remaining = this.plugin.getRemainingLockTime();
 					statusSection.createDiv({
 						text: `🔒 Session locked for ${remaining} more seconds`,
-						attr: { style: 'color: var(--text-warning); margin-top: 8px; font-style: italic;' }
+						cls: 'session-locked-warning'
 					});
 				}
 			}
 		} else {
 			statusSection.createDiv({
 				text: '⏸️ No active session',
-				attr: { style: 'color: var(--text-muted); font-style: italic;' }
+				cls: 'no-session-notice'
 			});
 		}
 
@@ -603,28 +522,21 @@ export class RoleDashboardModal extends Modal {
 			});
 
 			const historyContainer = container.createDiv({
-				attr: { style: 'max-height: 200px; overflow-y: auto;' }
+				cls: 'history-container'
 			});
 
 			todaySessions.forEach(session => {
 				const role = this.plugin.data.roles.find(r => r.id === session.roleId);
 				if (role) {
 					const sessionEl = historyContainer.createDiv({
-						attr: { style: 'display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--background-modifier-border);' }
+						cls: 'history-session-item'
 					});
 
 					// Role indicator
 					const indicator = sessionEl.createDiv({
-						attr: {
-							style: `
-								width: 12px;
-								height: 12px;
-								border-radius: 50%;
-								background-color: ${role.colorHex};
-								margin-right: 8px;
-							`
-						}
+						cls: 'history-role-indicator'
 					});
+					indicator.style.backgroundColor = role.colorHex;
 
 					// Session info
 					const sessionInfo = sessionEl.createDiv();
@@ -640,7 +552,7 @@ export class RoleDashboardModal extends Modal {
 
 					sessionInfo.createEl('div', {
 						text: `${role.name} • ${startTime} • ${duration}min`,
-						attr: { style: 'font-size: 13px;' }
+						cls: 'history-session-details'
 					});
 				}
 			});
@@ -712,45 +624,25 @@ export class IconPickerModal extends Modal {
 
 		// Container for all icons with better structure
 		const iconsContainer = contentEl.createDiv({
-			attr: {
-				style: `
-					max-height: 400px;
-					overflow-y: auto;
-					margin: 20px 0;
-					padding: 8px;
-					border: 1px solid var(--background-modifier-border);
-					border-radius: 4px;
-				`
-			}
+			cls: 'icon-picker-container'
 		});
 
 		// Create a simple grid with all icons first
 		const allIconsGrid = iconsContainer.createDiv({
-			attr: {
-				style: `
-					display: grid;
-					grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-					gap: 8px;
-					margin-bottom: 16px;
-				`
-			}
+			cls: 'icon-grid'
 		});
 
 		// Get all available icons
 		const allIcons = IconLibrary.getAllIcons();
-		console.log('IconPickerModal: Available icons:', allIcons.length, allIcons); // Debug log
 
 		if (allIcons.length === 0) {
-			console.error('IconPickerModal: No icons found!');
 			iconsContainer.createDiv({
 				text: 'No icons available',
-				attr: { style: 'text-align: center; color: var(--text-error); padding: 20px;' }
+				cls: 'no-icons-available'
 			});
 		} else {
-			console.log('IconPickerModal: Creating', allIcons.length, 'icon buttons');
 			// Add all icons to the grid
-			allIcons.forEach((iconKey, index) => {
-				console.log('IconPickerModal: Creating button', index + 1, 'of', allIcons.length, 'for icon:', iconKey);
+			allIcons.forEach((iconKey) => {
 				this.createIconButton(allIconsGrid, iconKey);
 			});
 		}
@@ -760,7 +652,7 @@ export class IconPickerModal extends Modal {
 
 		// Action buttons
 		const buttonContainer = contentEl.createDiv({
-			attr: { style: 'text-align: right; margin-top: 20px; gap: 8px; display: flex; justify-content: flex-end;' }
+			cls: 'icon-picker-buttons'
 		});
 
 		const selectBtn = buttonContainer.createEl('button', { text: 'Select' });
@@ -782,49 +674,23 @@ export class IconPickerModal extends Modal {
 	}
 
 	private createIconButton(container: HTMLElement, iconKey: string): void {
-		console.log('Creating icon button for:', iconKey); // Debug log
 		const isSelected = this.selectedIcon === iconKey;
 
 		const iconBtn = container.createDiv({
+			cls: `icon-button ${isSelected ? 'selected' : ''}`,
 			attr: {
 				'data-icon-key': iconKey,
-				title: iconKey, // Add tooltip
-				style: `
-					width: 40px;
-					height: 40px;
-					border: 2px solid ${isSelected ? '#007acc' : 'var(--background-modifier-border)'};
-					border-radius: 4px;
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					cursor: pointer;
-					transition: all 0.2s ease;
-					background: ${isSelected ? '#007acc20' : 'var(--background-primary)'};
-				`
+				title: iconKey
 			}
 		});
 
 		const iconEl = iconBtn.createDiv({
-			attr: {
-				style: `
-					width: 20px;
-					height: 20px;
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					color: ${isSelected ? '#007acc' : '#666'};
-				`
-			}
+			cls: `icon-element ${isSelected ? 'selected' : ''}`
 		});
 		
 		try {
 			const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
-			console.log('IconPickerModal: Created icon element for', iconKey, 'innerHTML:', iconElement.innerHTML.substring(0, 100));
-			console.log('IconPickerModal: Icon element style:', iconElement.style.cssText);
 			iconEl.appendChild(iconElement);
-			
-			// Additional debug - check if element is actually in DOM
-			console.log('IconPickerModal: iconEl after appendChild:', iconEl.innerHTML.substring(0, 100));
 		} catch (error) {
 			console.error('IconPickerModal: Error creating icon for', iconKey, error);
 			// Fallback text if icon creation fails
@@ -854,10 +720,13 @@ export class IconPickerModal extends Modal {
 				const btn = iconButtons[i] as HTMLElement;
 				const iconKey = btn.getAttribute('data-icon-key');
 				const isSelected = iconKey === this.selectedIcon;
-				
-				btn.style.borderColor = isSelected ? '#007acc' : 'var(--background-modifier-border)';
-				btn.style.backgroundColor = isSelected ? '#007acc20' : 'var(--background-primary)';
-				
+
+				if (isSelected) {
+					btn.addClass('selected');
+				} else {
+					btn.removeClass('selected');
+				}
+
 				// Update icon color by finding the SVG element
 				const svgElement = btn.querySelector('svg');
 				if (svgElement) {
@@ -874,51 +743,23 @@ export class IconPickerModal extends Modal {
 
 		if (this.selectedIcon) {
 			const selectedDisplay = container.createDiv({
-				cls: 'selected-icon-display',
-				attr: {
-					style: `
-						display: flex;
-						align-items: center;
-						gap: 8px;
-						padding: 12px;
-						margin: 16px 0;
-						border: 1px solid #007acc;
-						border-radius: 4px;
-						background: #007acc10;
-					`
-				}
+				cls: 'selected-icon-display'
 			});
 
 			const iconDisplay = selectedDisplay.createDiv({
-				attr: {
-					style: `
-						width: 24px;
-						height: 24px;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						color: #007acc;
-					`
-				}
+				cls: 'selected-icon-container'
 			});
 			const iconElement = IconLibrary.createIconElement(this.selectedIcon, 20, '#007acc');
 			iconDisplay.appendChild(iconElement);
 
 			selectedDisplay.createSpan({
 				text: this.selectedIcon.charAt(0).toUpperCase() + this.selectedIcon.slice(1),
-				attr: { style: 'font-weight: 500; color: #007acc;' }
+				cls: 'selected-icon-name'
 			});
 		} else {
 			// Show "no icon selected" state
 			container.createDiv({
-				attr: {
-					style: `
-						text-align: center;
-						color: var(--text-muted);
-						font-style: italic;
-						padding: 20px;
-					`
-				},
+				cls: 'no-icon-selected',
 				text: 'No icon selected'
 			});
 		}

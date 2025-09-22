@@ -1,7 +1,7 @@
 // Settings Tab Component
 
 import { App, PluginSettingTab, Setting, Notice, Modal } from 'obsidian';
-import { Role, DEFAULT_SETTINGS } from '../types';
+import { Role, DEFAULT_SETTINGS, ColorPickerComponent, RoleEditModalInterface } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { IconPickerModal } from '../views/Modals';
@@ -89,22 +89,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// Add visual role indicator
 		const colorEl = document.createElement('div');
-		colorEl.style.width = '20px';
-		colorEl.style.height = '20px';
-		colorEl.style.borderRadius = '50%';
+		colorEl.addClass('role-color-indicator');
 		colorEl.style.backgroundColor = role.colorHex;
-		colorEl.style.marginRight = '8px';
-		colorEl.style.display = 'inline-flex';
-		colorEl.style.alignItems = 'center';
-		colorEl.style.justifyContent = 'center';
-		colorEl.style.flexShrink = '0';
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconEl = document.createElement('div');
-			iconEl.style.width = '12px';
-			iconEl.style.height = '12px';
-			iconEl.style.color = 'white';
-			iconEl.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+			iconEl.addClass('role-icon-container');
 			const iconElement = IconLibrary.createIconElement(role.icon, 12, 'white');
 			iconEl.appendChild(iconElement);
 			colorEl.appendChild(iconEl);
@@ -203,18 +193,15 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private showRoleEditModal(role?: Role): void {
-		console.log('RoleSwitchSettingsTab: showRoleEditModal called with role:', role);
 		const modal = new RoleEditModal(this.app, this.plugin, role);
-		
+
 		// Store the original onClose and add our refresh logic
 		const originalOnClose = modal.onClose.bind(modal);
 		modal.onClose = () => {
-			console.log('RoleSwitchSettingsTab: Modal closing, refreshing settings');
 			originalOnClose();
 			this.display(); // Refresh settings when modal closes
 		};
-		
-		console.log('RoleSwitchSettingsTab: Opening modal');
+
 		modal.open();
 	}
 
@@ -247,12 +234,13 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 }
 
-class RoleEditModal extends Modal {
+class RoleEditModal extends Modal implements RoleEditModalInterface {
 	private plugin: RoleSwitchPlugin;
 	private role: Role | null;
 	private nameInput: HTMLInputElement;
 	private descriptionInput: HTMLTextAreaElement;
 	private colorInput: HTMLInputElement;
+	colorComponent?: ColorPickerComponent;
 	private selectedIcon: string | null = null;
 
 	constructor(app: App, plugin: RoleSwitchPlugin, role?: Role) {
@@ -263,13 +251,10 @@ class RoleEditModal extends Modal {
 	}
 
 	onOpen() {
-		console.log('RoleEditModal: onOpen called', { role: this.role, selectedIcon: this.selectedIcon });
-		
 		const { contentEl } = this;
 		contentEl.empty();
 
 		const title = this.role ? 'Edit Role' : 'Create New Role';
-		console.log('RoleEditModal: Creating modal with title:', title);
 		contentEl.createEl('h2', { text: title });
 
 		// Name input
@@ -278,7 +263,6 @@ class RoleEditModal extends Modal {
 			.setDesc('A descriptive name for this role')
 			.addText(text => {
 				this.nameInput = text.inputEl;
-				console.log('RoleEditModal: Name input assigned:', !!this.nameInput);
 				text.setValue(this.role?.name || '')
 					.setPlaceholder('e.g., Deep Work, Meetings, Learning');
 			});
@@ -289,7 +273,6 @@ class RoleEditModal extends Modal {
 			.setDesc('Optional description of this role')
 			.addTextArea(text => {
 				this.descriptionInput = text.inputEl;
-				console.log('RoleEditModal: Description input assigned:', !!this.descriptionInput);
 				text.setValue(this.role?.description || '')
 					.setPlaceholder('Optional description...');
 				text.inputEl.rows = 3;
@@ -300,23 +283,15 @@ class RoleEditModal extends Modal {
 			.setName('Color')
 			.setDesc('Color to represent this role')
 			.addColorPicker(color => {
-				// Try multiple ways to get the color input element
-				this.colorInput = (color as any).inputEl || (color as any).input;
-				console.log('RoleEditModal: Color input assigned:', !!this.colorInput, typeof this.colorInput);
-				
-				if (this.colorInput) {
-					console.log('RoleEditModal: Color input value:', this.colorInput.value);
-					console.log('RoleEditModal: Color input type:', this.colorInput.type);
-				} else {
-					console.error('RoleEditModal: Failed to get color input element');
-				}
-				
+				// Get the color input element using proper typing
+				const colorPicker = color as unknown as ColorPickerComponent;
+				this.colorInput = colorPicker.inputEl || colorPicker.input!;
+
 				const defaultColor = this.role?.colorHex || Utils.generateRandomColor();
-				console.log('RoleEditModal: Setting default color:', defaultColor);
 				color.setValue(defaultColor);
-				
-				// Store the color component as fallback
-				(this as any).colorComponent = color;
+
+				// Store the color component with proper typing
+				this.colorComponent = colorPicker;
 			});
 
 		// Icon selection
@@ -324,63 +299,32 @@ class RoleEditModal extends Modal {
 
 		// Action buttons
 		const buttonContainer = contentEl.createDiv({
-			attr: { style: 'text-align: right; margin-top: 20px; gap: 8px; display: flex; justify-content: flex-end;' }
+			cls: 'role-edit-buttons'
 		});
 
 		const saveBtn = buttonContainer.createEl('button', { text: 'Save' });
-		console.log('RoleEditModal: Save button created:', saveBtn);
-		console.log('RoleEditModal: Save button style:', saveBtn.style.cssText);
-		console.log('RoleEditModal: Save button disabled:', saveBtn.disabled);
-		
-		// Add some basic styling to ensure button is clickable
-		saveBtn.style.padding = '8px 16px';
-		saveBtn.style.marginRight = '8px';
-		saveBtn.style.cursor = 'pointer';
-		saveBtn.style.backgroundColor = '#007acc';
-		saveBtn.style.color = 'white';
-		saveBtn.style.border = 'none';
-		saveBtn.style.borderRadius = '4px';
-		
+
+		// Add CSS class for styling
+		saveBtn.addClass('role-edit-save');
+
 		saveBtn.addEventListener('click', (event) => {
-			console.log('RoleEditModal: Save button event triggered', event);
-			console.log('RoleEditModal: Event target:', event.target);
-			console.log('RoleEditModal: Event currentTarget:', event.currentTarget);
 			event.preventDefault();
 			event.stopPropagation();
-			
-			// Test if we can show a simple notice first
+
 			try {
-				console.log('RoleEditModal: About to call save method');
 				this.save();
 			} catch (error) {
 				console.error('RoleEditModal: Error in save method:', error);
 				new Notice('Error in save method: ' + error.message);
 			}
 		});
-		
-		// Also add a mousedown listener as backup
-		saveBtn.addEventListener('mousedown', () => {
-			console.log('RoleEditModal: Save button mousedown detected');
-		});
-		
-		// Add a test to verify the button is in the DOM
-		setTimeout(() => {
-			console.log('RoleEditModal: Button in DOM check:', document.contains(saveBtn));
-			console.log('RoleEditModal: Button parent:', saveBtn.parentElement);
-		}, 100);
 
 		const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
-		console.log('RoleEditModal: Cancel button created:', cancelBtn);
-		
-		// Add some basic styling
-		cancelBtn.style.padding = '8px 16px';
-		cancelBtn.style.cursor = 'pointer';
-		cancelBtn.style.backgroundColor = 'var(--interactive-normal)';
-		cancelBtn.style.border = '1px solid var(--background-modifier-border)';
-		cancelBtn.style.borderRadius = '4px';
-		
+
+		// Add CSS class for styling
+		cancelBtn.addClass('role-edit-cancel');
+
 		cancelBtn.addEventListener('click', (event) => {
-			console.log('RoleEditModal: Cancel button event triggered', event);
 			event.preventDefault();
 			event.stopPropagation();
 			this.close();
@@ -420,73 +364,45 @@ class RoleEditModal extends Modal {
 	}
 
 	private save(): void {
-		console.log('RoleEditModal: Save button clicked');
-		
 		const name = this.nameInput?.value?.trim() || '';
 		const description = this.descriptionInput?.value?.trim() || '';
-		
+
 		// Handle color input more safely
 		let color = '';
 		if (this.colorInput && this.colorInput.value) {
 			color = this.colorInput.value;
-		} else if ((this as any).colorComponent && (this as any).colorComponent.getValue) {
-			console.warn('RoleEditModal: Using color component fallback');
-			color = (this as any).colorComponent.getValue();
+		} else if (this.colorComponent && this.colorComponent.getValue) {
+			color = this.colorComponent.getValue();
 		} else {
-			console.warn('RoleEditModal: No color input available, using random color');
 			color = Utils.generateRandomColor();
 		}
 
-		console.log('RoleEditModal: Form values:', { 
-			name, 
-			description, 
-			color, 
-			selectedIcon: this.selectedIcon,
-			nameInputExists: !!this.nameInput,
-			descriptionInputExists: !!this.descriptionInput,
-			colorInputExists: !!this.colorInput
-		});
-
 		if (!name) {
-			console.log('RoleEditModal: Save failed - no name');
 			new Notice('Role name is required');
 			return;
 		}
 
-		console.log('RoleEditModal: Checking color validity for:', color, typeof color);
 		const isValidColor = Utils.isValidHexColor(color);
-		console.log('RoleEditModal: Color validation result:', isValidColor);
-		
+
 		if (!isValidColor) {
-			console.log('RoleEditModal: Save failed - invalid color:', color);
-			console.log('RoleEditModal: Attempting to fix color format...');
-			
 			// Try to fix common color format issues
 			if (color && typeof color === 'string') {
 				if (!color.startsWith('#')) {
 					color = '#' + color;
-					console.log('RoleEditModal: Added # prefix, new color:', color);
 				}
-				
+
 				// Try validation again
-				if (Utils.isValidHexColor(color)) {
-					console.log('RoleEditModal: Color fixed successfully');
-				} else {
-					console.log('RoleEditModal: Color still invalid, using fallback');
+				if (!Utils.isValidHexColor(color)) {
 					color = Utils.generateRandomColor();
 				}
 			} else {
-				console.log('RoleEditModal: Color is not a string, using fallback');
 				color = Utils.generateRandomColor();
 			}
 		}
 
-		console.log('RoleEditModal: Validation passed, attempting to save...');
-
 		try {
 			if (this.role) {
 				// Update existing role
-				console.log('RoleEditModal: Updating existing role:', this.role.id);
 				this.plugin.updateRole(this.role.id, {
 					name,
 					description: description || undefined,
@@ -496,12 +412,9 @@ class RoleEditModal extends Modal {
 				new Notice('Role updated');
 			} else {
 				// Create new role
-				console.log('RoleEditModal: Creating new role');
 				const newRole = this.plugin.createRole(name, color, description || undefined, this.selectedIcon || undefined);
-				console.log('RoleEditModal: New role created:', newRole);
 				new Notice('Role created');
 			}
-			console.log('RoleEditModal: Save successful, closing modal');
 			this.close();
 		} catch (error) {
 			console.error('RoleEditModal: Error saving role:', error);
@@ -538,14 +451,13 @@ class ConfirmModal extends Modal {
 		contentEl.createEl('p', { text: this.message });
 
 		const buttonContainer = contentEl.createDiv({
-			attr: { style: 'text-align: right; margin-top: 20px; gap: 8px; display: flex; justify-content: flex-end;' }
+			cls: 'confirm-modal-buttons'
 		});
 
-		const confirmBtn = buttonContainer.createEl('button', { text: this.confirmText });
-		if (this.isDestructive) {
-			confirmBtn.style.backgroundColor = 'var(--text-error)';
-			confirmBtn.style.color = 'white';
-		}
+		const confirmBtn = buttonContainer.createEl('button', {
+			text: this.confirmText,
+			cls: this.isDestructive ? 'confirm-button destructive' : 'confirm-button'
+		});
 		confirmBtn.addEventListener('click', () => {
 			this.close();
 			this.onConfirm(true);
