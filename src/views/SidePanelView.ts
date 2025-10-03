@@ -1,6 +1,6 @@
 // Side Panel View Component
 
-import { ItemView, WorkspaceLeaf, Notice } from 'obsidian';
+import { ItemView, WorkspaceLeaf, Notice, Platform } from 'obsidian';
 import { ROLESWITCH_VIEW_TYPE, Role } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
@@ -100,36 +100,47 @@ export class RoleSwitchView extends ItemView {
 		// Header with plugin branding
 		const header = container.createDiv({ cls: 'side-panel-header' });
 
-		// RoleSwitch logo
+		// RoleSwitch logo or icon
 		const headerIcon = header.createDiv({ cls: 'header-icon' });
-		try {
-			// Use plugin resource path
-			const adapter = this.app.vault.adapter;
-			const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
-			const logo = headerIcon.createEl('img', {
-				attr: {
-					src: `app://local/${pluginDir}/image/logo.png`,
-					alt: 'RoleSwitch Logo'
-				},
-				cls: 'header-logo'
-			});
-			logo.style.width = '24px';
-			logo.style.height = '24px';
 
-			// Fallback if image fails to load
-			logo.addEventListener('error', () => {
-				headerIcon.empty();
+		// Skip logo on mobile, use icon instead
+		if (Platform.isMobile) {
+			const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
+			if (iconElement.firstChild) {
+				headerIcon.appendChild(iconElement.firstChild as Node);
+			}
+		} else {
+			try {
+				// Use plugin resource path
+				const adapter = this.app.vault.adapter;
+				if (adapter && (adapter as any).basePath) {
+					const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
+					const logo = headerIcon.createEl('img', {
+						attr: {
+							src: `app://local/${pluginDir}/image/logo.png`,
+							alt: 'RoleSwitch Logo'
+						},
+						cls: 'header-logo'
+					});
+					logo.style.width = '24px';
+					logo.style.height = '24px';
+
+					// Fallback if image fails to load
+					logo.addEventListener('error', () => {
+						headerIcon.empty();
+						const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
+						if (iconElement.firstChild) {
+							headerIcon.appendChild(iconElement.firstChild as Node);
+						}
+					});
+				}
+			} catch (error) {
+				console.error('RoleSwitchView: Error loading logo (non-critical):', error);
+				// Fallback to icon
 				const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
 				if (iconElement.firstChild) {
 					headerIcon.appendChild(iconElement.firstChild as Node);
 				}
-			});
-		} catch (error) {
-			console.error('RoleSwitchView: Error loading logo:', error);
-			// Fallback to icon
-			const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-			if (iconElement.firstChild) {
-				headerIcon.appendChild(iconElement.firstChild as Node);
 			}
 		}
 
@@ -320,7 +331,9 @@ export class RoleSwitchView extends ItemView {
 				new RoleDashboardModal(this.app, this.plugin).open();
 			} catch (error) {
 				console.error('RoleSwitchView: Error opening dashboard:', error);
-				new Notice('Dashboard not available. Please check console for details.');
+				console.error('Error details:', error instanceof Error ? error.message : error);
+				console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+				new Notice(`Dashboard error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 		});
 

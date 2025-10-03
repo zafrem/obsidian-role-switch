@@ -348,28 +348,34 @@ export class RoleDashboardModal extends Modal {
 
 		// Dashboard header with logo
 		const headerContainer = contentEl.createDiv({ cls: 'dashboard-header' });
-		try {
-			// Use plugin resource path
-			const adapter = this.app.vault.adapter;
-			const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
-			const logo = headerContainer.createEl('img', {
-				attr: {
-					src: `app://local/${pluginDir}/image/logo.png`,
-					alt: 'RoleSwitch Logo'
-				},
-				cls: 'dashboard-logo'
-			});
-			logo.style.width = '32px';
-			logo.style.height = '32px';
-			logo.style.marginRight = '12px';
 
-			// Fallback if image fails to load
-			logo.addEventListener('error', () => {
-				logo.remove();
-			});
-		} catch (error) {
-			console.error('RoleDashboardModal: Error loading logo:', error);
+		// Try to load logo, but don't fail if it doesn't work
+		if (!Platform.isMobile) {
+			try {
+				const adapter = this.app.vault.adapter;
+				if (adapter && (adapter as any).basePath) {
+					const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
+					const logo = headerContainer.createEl('img', {
+						attr: {
+							src: `app://local/${pluginDir}/image/logo.png`,
+							alt: 'RoleSwitch Logo'
+						},
+						cls: 'dashboard-logo'
+					});
+					logo.style.width = '32px';
+					logo.style.height = '32px';
+					logo.style.marginRight = '12px';
+
+					// Fallback if image fails to load
+					logo.addEventListener('error', () => {
+						logo.remove();
+					});
+				}
+			} catch (error) {
+				console.error('RoleDashboardModal: Error loading logo (non-critical):', error);
+			}
 		}
+
 		headerContainer.createEl('h2', { text: 'Role Dashboard', attr: { style: 'margin: 0;' } });
 
 		// Analytics section
