@@ -14,12 +14,27 @@ An Obsidian plugin that helps you consciously switch between different work role
 
 ## Features
 
-- **Custom Work Roles**: Define roles like Developer, Writer, Researcher, QA with unique colors and icons
-- **Intentional Transitions**: Session locks encourage mindful role switching instead of random task-jumping
-- **Role Awareness**: Visual cues (status bar, workspace borders) remind you which role you're in
-- **Session Tracking**: Track time spent in each role with real-time timers
-- **Role Notes**: Capture thoughts and context specific to each role session
-- **Analytics Export**: Review your role patterns with CSV/JSON export
+### Core Features
+- **Custom Work Roles**: Define roles with unique colors and letter-based icons (A-Z)
+- **Intentional Transitions**: Configurable transition delays with educational messages about context switching
+- **Session Locks**: Minimum session duration prevents task-jumping and encourages deep focus
+- **Role Awareness**: Visual cues (status bar, workspace borders, colored UI) remind you which role you're in
+- **Session Tracking**: Track time spent in each role with real-time timers and historical data
+- **Analytics Dashboard**: View daily, weekly, and monthly time statistics
+
+### User Interface
+- **Side Panel View**: Quick access to all roles with real-time session tracking
+- **Role Dashboard**: Comprehensive analytics and session management
+- **Smart Settings**: Preset buttons + direct input fields for easy configuration
+- **Mobile Optimized**: Fully responsive design for mobile devices
+- **Visual Feedback**: Click animations and color-coded role indicators
+
+### Smart Features
+- **Periodic Reminders**: Optional notifications to keep you aware of your current role
+- **Real-time Updates**: Live countdown timers for session locks and durations
+- **Data Preservation**: Historical data retained even when roles are deleted (appears as "Deleted Role")
+- **Transition Messages**: Educational tips about context switching during role transitions
+- **Auto-save**: Data saved periodically and when app is backgrounded (mobile-friendly)
 
 ## Use Cases & Examples
 
@@ -81,9 +96,31 @@ For researchers, analysts, and knowledge workers:
 ## Quick Start
 
 1. **Install**: Enable "RoleSwitch" in **Settings → Community plugins**
-2. **Setup**: Go to **Settings → RoleSwitch** and create your work roles (e.g., "Developer", "Writer", "Researcher")
-3. **Use**: Click the clock icon in the ribbon to open the role panel
-4. **Switch**: Click on any role to enter that mindset and start tracking time
+2. **Setup**: Go to **Settings → RoleSwitch**
+   - Create your work roles (e.g., "Developer", "Writer", "Researcher")
+   - Choose letter icons (A-Z), colors, and descriptions
+   - Configure transition duration and minimum session duration
+3. **Access**: Open the RoleSwitch side panel from the left sidebar
+4. **Start**: Click on any role to begin a session
+5. **Switch**: When locked, wait for the minimum duration or use the transition modal
+6. **Track**: View your analytics in the Dashboard button
+
+## Settings Guide
+
+### Session Settings
+- **Transition duration**: Time to wait before switching roles (5-120 seconds)
+  - Presets: 5s, 10s, 30s or enter custom value
+- **Minimum session duration**: Minimum time before allowing role switches (5-60 minutes)
+  - Presets: 5m, 15m, 30m or enter custom value
+
+### Display Settings
+- **Show status bar**: Display current role in Obsidian status bar
+- **Show workspace border**: Visual border in role's color
+- **Border opacity**: Adjust border visibility (0.1-1.0)
+  - Presets: 0.3, 0.5, 0.8 or enter custom value
+- **Show periodic reminder**: Enable role reminders
+- **Reminder interval**: How often to show reminders (1-60 minutes)
+  - Presets: 5m, 15m, 30m or enter custom value
 
 ## Documentation
 
@@ -93,12 +130,53 @@ For researchers, analysts, and knowledge workers:
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Development](docs/DEVELOPMENT.md)** - Contributing and technical details
 
+## Key UI Elements
+
+### Side Panel
+- **Header**: Shows plugin logo and title
+- **Roles Grid**: Click any role to start/switch sessions
+- **Current Session**: Real-time duration and lock status
+- **Quick Actions**: Dashboard and End Session buttons
+
+### Transition Modal
+When switching roles, you'll see:
+- Countdown timer
+- Educational message about context switching
+- Cancel button if needed
+
+### Role Dashboard
+- **Analytics**: Today, week, and month statistics
+- **Current Session**: Live tracking with lock countdown
+- **Averages**: Daily averages for week and month
+
 ## Version Information
 
 - **Version**: 0.1.0
 - **Minimum Obsidian**: 1.6.0
 - **Platforms**: Windows, macOS, Linux, iOS, Android
 - **License**: MIT
+
+## Recent Updates
+
+### UI/UX Improvements
+- Letter-based icons (A-Z) for simpler role identification
+- Click highlight effects for better visual feedback
+- Improved icon selection with color toggle
+- End Session button always visible (disabled when locked)
+- Logo integration in side panel and dashboard
+
+### Feature Enhancements
+- Preset buttons + direct input for all settings
+- Unit labels for better clarity (seconds, minutes, opacity)
+- Transition messages with context switching education
+- Periodic reminders with customizable intervals
+- Real-time lock countdowns in multiple locations
+
+### Data & Stability
+- Auto-save on app backgrounding (mobile-friendly)
+- Historical data preserved when roles deleted
+- Error handling for save operations
+- Fixed mobile data persistence issues
 
 ## Disabled Features
 
