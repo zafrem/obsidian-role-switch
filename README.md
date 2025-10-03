@@ -7,9 +7,8 @@ An Obsidian plugin that helps you consciously switch between different work role
 ## Demo
 [![Demo](./image/Demo.gif)](./image/Demo.gif)
 
-### Switch
-[![Demo1](./image/Demo1.jpg)](./image/Demo1.jpg)
-[![Demo2](./image/Demo2.jpg)](./image/Demo2.jpg)
+### Mobile Demo
+[![Demo1](./image/Demo1.gif)](./image/Demo1.gif)
 
 
 ## Features
