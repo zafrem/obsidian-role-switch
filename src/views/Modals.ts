@@ -340,10 +340,9 @@ export class RoleDashboardModal extends Modal {
 		contentEl.empty();
 
 		// Mobile responsive styling
+		contentEl.addClass('dashboard-modal');
 		if (Platform.isMobile) {
-			contentEl.addClass('dashboard-modal mobile');
-		} else {
-			contentEl.addClass('dashboard-modal');
+			contentEl.addClass('mobile');
 		}
 
 		// Dashboard header with logo
