@@ -15,12 +15,28 @@
 }
 
 .role-switch-view .header-icon {
-	width: 20px;
-	height: 20px;
+	width: 24px;
+	height: 24px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: var(--interactive-accent);
+}
+
+.header-logo {
+	display: block;
+	object-fit: contain;
+}
+
+.dashboard-header {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.dashboard-logo {
+	display: block;
+	object-fit: contain;
 }
 
 .role-switch-view .header-title {
@@ -188,6 +204,21 @@
 	color: var(--text-on-accent);
 }
 
+.quick-action-btn.locked,
+.quick-action-btn.end-session.locked {
+	opacity: 0.5;
+	cursor: not-allowed;
+	border-color: var(--background-modifier-border);
+	color: var(--text-muted);
+}
+
+.quick-action-btn.locked:hover,
+.quick-action-btn.end-session.locked:hover {
+	background: var(--background-primary);
+	border-color: var(--background-modifier-border);
+	color: var(--text-muted);
+}
+
 /* Compact Roles */
 .compact-roles-grid {
 	display: grid;
@@ -218,6 +249,12 @@
 .compact-role-card.locked {
 	opacity: 0.6;
 	cursor: not-allowed;
+}
+
+.compact-role-card.clicked {
+	transform: scale(0.95);
+	box-shadow: 0 0 12px rgba(0, 122, 204, 0.5);
+	transition: all 0.1s ease;
 }
 
 .compact-role-header {
@@ -421,6 +458,19 @@
 .transition-countdown {
 	font-size: 48px;
 	margin: 20px 0;
+}
+
+.transition-message {
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--text-muted);
+	font-style: italic;
+	margin: 20px auto;
+	max-width: 400px;
+	padding: 15px;
+	background: var(--background-secondary);
+	border-radius: 8px;
+	border-left: 3px solid var(--interactive-accent);
 }
 
 .transition-buttons {
@@ -777,6 +827,55 @@
 	text-align: center;
 }
 
+/* Settings preset buttons and input */
+.setting-item-control-flex {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.setting-preset-button {
+	padding: 6px 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	cursor: pointer;
+	font-size: 13px;
+	transition: all 0.2s ease;
+}
+
+.setting-preset-button:hover {
+	background: var(--background-modifier-hover);
+	border-color: var(--interactive-hover);
+}
+
+.setting-preset-button:active {
+	background: var(--background-modifier-active-hover);
+}
+
+.setting-number-input {
+	width: 80px;
+	padding: 6px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 13px;
+}
+
+.setting-number-input:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+.setting-unit-label {
+	color: var(--text-muted);
+	font-size: 13px;
+	margin-left: 4px;
+}
+
 .role-color-indicator {
 	width: 20px;
 	height: 20px;
@@ -871,7 +970,8 @@
 	bottom: 0;
 	border: 3px solid;
 	pointer-events: none;
-	z-index: 9999;
+	z-index: 999;
+	box-sizing: border-box;
 }
 
 /* Status Bar Styles */

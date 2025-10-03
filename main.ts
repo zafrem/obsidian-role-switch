@@ -15,11 +15,20 @@ import { Utils } from './src/utils';
 import { RoleSwitchView } from './src/views/SidePanelView';
 import { TransitionModal, RolePickerModal, NoteEditModal, RoleDashboardModal } from './src/views/Modals';
 import { RoleSwitchSettingsTab } from './src/settings/Settings';
+import { RoleSwitchApi } from './src/api/ApiInterface';
+import { RoleSwitchHttpServer } from './src/api/HttpServer';
+import { AuthService } from './src/api/AuthService';
+import { SyncService } from './src/api/SyncService';
 
 export default class RoleSwitchPlugin extends Plugin {
-	data: RoleSwitchData;
+	data!: RoleSwitchData;
 	statusBarItem: HTMLElement | null = null;
 	borderEl: HTMLElement | null = null;
+	api!: RoleSwitchApi;
+	httpServer!: RoleSwitchHttpServer;
+	auth!: AuthService;
+	sync!: SyncService;
+	reminderInterval: number | null = null;
 
 	async onload() {
 		await this.loadPluginData();
@@ -44,15 +53,72 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 
+		// Initialize services
+		this.auth = new AuthService(this);
+		this.api = new RoleSwitchApi(this, this.data.settings.apiPort || 3030);
+		this.httpServer = new RoleSwitchHttpServer(this.api, this.auth);
+		this.sync = new SyncService(this, this.auth);
+
+		// Generate device ID if not exists
+		if (!this.data.settings.deviceId) {
+			this.data.settings.deviceId = this.generateDeviceId();
+			this.savePluginData();
+		}
+
+		// Start API server if enabled in settings
+		if (this.data.settings.enableApi) {
+			try {
+				await this.api.startServer();
+			} catch (error) {
+				console.error('Failed to start RoleSwitch API server:', error);
+			}
+		}
+
+		// Start sync service if enabled
+		if (this.data.settings.enableSync) {
+			this.sync.startAutoSync();
+		}
+
 		// Auto-save data periodically
 		this.registerInterval(window.setInterval(() => {
 			this.savePluginData();
 		}, 60000)); // Save every minute
+
+		// Save data when app is backgrounded (important for mobile)
+		this.registerDomEvent(document, 'visibilitychange', () => {
+			if (document.hidden) {
+				// App is being backgrounded, save data immediately
+				this.savePluginData();
+			}
+		});
+
+		// Save data before page unload (mobile safety)
+		this.registerDomEvent(window, 'beforeunload', () => {
+			this.savePluginData();
+		});
 	}
 
-	onunload() {
+	async onunload() {
+		// Save data before unloading (important for mobile)
+		await this.savePluginData();
+
 		this.removeStatusBar();
 		this.removeWorkspaceBorder();
+		this.stopReminderInterval();
+
+		// Stop sync service
+		if (this.sync) {
+			this.sync.stopAutoSync();
+		}
+
+		// Stop API server
+		if (this.api) {
+			try {
+				await this.api.stopServer();
+			} catch (error) {
+				console.error('Failed to stop RoleSwitch API server:', error);
+			}
+		}
 	}
 
 	// ====================
@@ -70,19 +136,41 @@ export default class RoleSwitchPlugin extends Plugin {
 				inTransition: false,
 				lockUntil: null
 			},
-			settings: { ...DEFAULT_SETTINGS }
+			settings: { ...DEFAULT_SETTINGS },
+			apiKeys: [],
+			syncEndpoints: []
 		};
 
 		this.data = Object.assign(defaultData, await this.loadData());
 	}
 
 	async savePluginData() {
-		await this.saveData(this.data);
+		try {
+			await this.saveData(this.data);
+		} catch (error) {
+			console.error('RoleSwitch: Failed to save plugin data:', error);
+			new Notice('RoleSwitch: Failed to save data. Please check console for details.');
+		}
 	}
 
 	// ====================
 	// ROLE MANAGEMENT
 	// ====================
+
+	// Get role by ID, returns deleted role placeholder if not found
+	getRoleById(roleId: string): Role {
+		const role = this.data.roles.find(r => r.id === roleId);
+		if (role) {
+			return role;
+		}
+		// Return placeholder for deleted roles
+		return {
+			id: roleId,
+			name: '(Deleted Role)',
+			colorHex: '#888888',
+			description: 'This role has been deleted'
+		};
+	}
 
 	createRole(name: string, colorHex: string, description?: string, icon?: string): Role {
 		const role: Role = {
@@ -119,6 +207,9 @@ export default class RoleSwitchPlugin extends Plugin {
 			this.endSession();
 		}
 
+		// Remove role from roles array
+		// NOTE: Historical events/sessions are preserved for data integrity
+		// Deleted roles will appear as "Deleted Role" in historical views
 		this.data.roles = this.data.roles.filter(r => r.id !== roleId);
 		this.savePluginData();
 		this.refreshSidePanel();
@@ -165,6 +256,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 		this.refreshSidePanel();
+		this.updateReminderInterval();
 
 		new Notice(`Started ${role.name} session`);
 	}
@@ -223,6 +315,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 		this.refreshSidePanel();
+		this.updateReminderInterval();
 
 		new Notice(`Switched to ${role.name}`);
 	}
@@ -244,7 +337,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			at: now,
 			meta: {
 				sessionId: this.data.state.activeSessionId || undefined,
-				duration: this.data.state.activeStartAt ? 
+				duration: this.data.state.activeStartAt ?
 					(Date.now() - new Date(this.data.state.activeStartAt).getTime()) / 1000 : undefined
 			}
 		});
@@ -262,6 +355,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 		this.refreshSidePanel();
+		this.stopReminderInterval();
 
 		new Notice(`Ended ${role?.name || 'session'}`);
 	}
@@ -414,8 +508,12 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.borderEl.addClass('workspace-border');
 		this.borderEl.style.borderColor = role.colorHex;
 		this.borderEl.style.opacity = this.data.settings.borderOpacity.toString();
+		this.borderEl.style.pointerEvents = 'none';
+		this.borderEl.setAttribute('data-role-switch-border', 'true');
 
-		document.body.appendChild(this.borderEl);
+		// Append to app container instead of body for better compatibility
+		const appContainer = document.querySelector('.app-container') || document.body;
+		appContainer.appendChild(this.borderEl);
 	}
 
 	removeWorkspaceBorder(): void {
@@ -491,5 +589,142 @@ export default class RoleSwitchPlugin extends Plugin {
 				new NoteEditModal(this.app, this, this.data.state.activeSessionId, null).open();
 			}
 		});
+
+		// API commands
+		this.addCommand({
+			id: 'start-api-server',
+			name: 'Start API server',
+			callback: async () => {
+				if (!this.api) {
+					console.error('API not initialized');
+					return;
+				}
+				try {
+					await this.api.startServer();
+					new Notice('API server started successfully');
+				} catch (error) {
+					new Notice(`Failed to start API server: ${error}`);
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'stop-api-server',
+			name: 'Stop API server',
+			callback: async () => {
+				if (!this.api) {
+					console.error('API not initialized');
+					return;
+				}
+				try {
+					await this.api.stopServer();
+					new Notice('API server stopped successfully');
+				} catch (error) {
+					new Notice(`Failed to stop API server: ${error}`);
+				}
+			}
+		});
+	}
+
+	// ====================
+	// API METHODS
+	// ====================
+
+	getApiStatus() {
+		return this.api ? this.api.getStatus() : null;
+	}
+
+	async startApiServer() {
+		if (this.api) {
+			await this.api.startServer();
+		}
+	}
+
+	async stopApiServer() {
+		if (this.api) {
+			await this.api.stopServer();
+		}
+	}
+
+	handleApiRequest(method: string, url: string, headers: Record<string, string>, body?: any) {
+		if (!this.httpServer) {
+			return {
+				statusCode: 503,
+				headers: { 'Content-Type': 'application/json' },
+				body: { success: false, error: 'API server not initialized' }
+			};
+		}
+
+		return this.httpServer.handleRequest({
+			method,
+			url,
+			headers,
+			body
+		});
+	}
+
+	// ====================
+	// UTILITY METHODS
+	// ====================
+
+	private generateDeviceId(): string {
+		return Math.random().toString(36).substring(2, 15) +
+			   Math.random().toString(36).substring(2, 15);
+	}
+
+	// ====================
+	// PERIODIC REMINDER
+	// ====================
+
+	updateReminderInterval(): void {
+		this.stopReminderInterval();
+
+		if (this.data.settings.showPeriodicReminder && this.data.state.activeRoleId) {
+			this.startReminderInterval();
+		}
+	}
+
+	private startReminderInterval(): void {
+		if (!this.data.settings.showPeriodicReminder || !this.data.state.activeRoleId) {
+			return;
+		}
+
+		const intervalMs = this.data.settings.reminderIntervalMinutes * 60 * 1000;
+
+		// Show first reminder immediately
+		this.showRoleReminder();
+
+		// Then repeat at the interval - use registerInterval for proper Obsidian lifecycle management
+		this.reminderInterval = this.registerInterval(window.setInterval(() => {
+			this.showRoleReminder();
+		}, intervalMs));
+	}
+
+	private stopReminderInterval(): void {
+		if (this.reminderInterval !== null) {
+			window.clearInterval(this.reminderInterval);
+			this.reminderInterval = null;
+		}
+	}
+
+	private showRoleReminder(): void {
+		if (!this.data.state.activeRoleId) {
+			return;
+		}
+
+		const role = this.data.roles.find(r => r.id === this.data.state.activeRoleId);
+		if (!role) {
+			return;
+		}
+
+		// Create a styled notice with the role color
+		const fragment = document.createDocumentFragment();
+		const span = document.createElement('span');
+		span.style.color = role.colorHex;
+		span.style.fontWeight = 'bold';
+		span.textContent = `You are now playing the role of '${role.name}'. Don't forget, you are playing the role of '${role.name}'.`;
+		fragment.appendChild(span);
+
+		new Notice(fragment, 8000);
 	}
 }

@@ -12,6 +12,14 @@ export class TransitionModal extends Modal {
 	private countdownInterval: number | null = null;
 	private remainingSeconds: number;
 
+	private static readonly TRANSITION_MESSAGES = [
+		"Studies show that it takes an average of 20-25 minutes to re-enter a state of deep flow when switching to a completely different task.",
+		"If you intentionally create a 'switch buffer,' your brain will recognize that 'you're in a different mode,' making it easier to shift your mindset.",
+		"Taking a moment to pause between roles helps you mentally close the previous task and prepare for the next one with full attention.",
+		"This transition time allows your mind to let go of the previous context and embrace the new role without carrying over distractions.",
+		"Brief pauses between different types of work reduce cognitive load and help maintain higher quality focus in each role."
+	];
+
 	constructor(app: App, plugin: RoleSwitchPlugin, targetRole: Role) {
 		super(app);
 		this.plugin = plugin;
@@ -23,20 +31,29 @@ export class TransitionModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		contentEl.addClass('transition-modal');
-		
+
 		// Make modal mobile-friendly
 		if (Platform.isMobile) {
 			contentEl.addClass('mobile');
 		}
-		
-		contentEl.createEl('div', { 
+
+		contentEl.createEl('div', {
 			text: `Switching to: ${this.targetRole.name}`,
 			cls: 'transition-title'
 		}).style.color = this.targetRole.colorHex;
 
-		const countdownEl = contentEl.createEl('div', { 
+		const countdownEl = contentEl.createEl('div', {
 			text: `${this.remainingSeconds}s`,
 			cls: 'transition-countdown'
+		});
+
+		// Add random transition message
+		const randomMessage = TransitionModal.TRANSITION_MESSAGES[
+			Math.floor(Math.random() * TransitionModal.TRANSITION_MESSAGES.length)
+		];
+		contentEl.createEl('div', {
+			text: randomMessage,
+			cls: 'transition-message'
 		});
 
 		const buttonContainer = contentEl.createDiv({ cls: 'transition-buttons' });
@@ -191,7 +208,9 @@ export class RolePickerModal extends Modal {
 		}
 
 		// Click handler
-		card.addEventListener('click', () => {
+		card.addEventListener('click', (event) => {
+			event.stopPropagation();
+
 			if (isActive && this.mode === 'switch') {
 				new Notice('Already in this role');
 				return;
@@ -202,7 +221,9 @@ export class RolePickerModal extends Modal {
 			} else {
 				this.plugin.switchSession(role.id);
 			}
-			this.close();
+
+			// Defer close to next tick to allow events to complete
+			setTimeout(() => this.close(), 0);
 		});
 	}
 
@@ -216,7 +237,7 @@ export class NoteEditModal extends Modal {
 	private plugin: RoleSwitchPlugin;
 	private sessionId: string;
 	private note: Note | null;
-	private textArea: HTMLTextAreaElement;
+	private textArea!: HTMLTextAreaElement;
 
 	constructor(app: App, plugin: RoleSwitchPlugin, sessionId: string, note: Note | null = null) {
 		super(app);
@@ -307,6 +328,7 @@ export class RoleDashboardModal extends Modal {
 	private plugin: RoleSwitchPlugin;
 	private timerInterval: number | null = null;
 	private durationEl: HTMLElement | null = null;
+	private lockEl: HTMLElement | null = null;
 
 	constructor(app: App, plugin: RoleSwitchPlugin) {
 		super(app);
@@ -324,7 +346,31 @@ export class RoleDashboardModal extends Modal {
 			contentEl.addClass('dashboard-modal');
 		}
 
-		contentEl.createEl('h2', { text: 'Role Dashboard' });
+		// Dashboard header with logo
+		const headerContainer = contentEl.createDiv({ cls: 'dashboard-header' });
+		try {
+			// Use plugin resource path
+			const adapter = this.app.vault.adapter;
+			const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
+			const logo = headerContainer.createEl('img', {
+				attr: {
+					src: `app://local/${pluginDir}/image/logo.png`,
+					alt: 'RoleSwitch Logo'
+				},
+				cls: 'dashboard-logo'
+			});
+			logo.style.width = '32px';
+			logo.style.height = '32px';
+			logo.style.marginRight = '12px';
+
+			// Fallback if image fails to load
+			logo.addEventListener('error', () => {
+				logo.remove();
+			});
+		} catch (error) {
+			console.error('RoleDashboardModal: Error loading logo:', error);
+		}
+		headerContainer.createEl('h2', { text: 'Role Dashboard', attr: { style: 'margin: 0;' } });
 
 		// Analytics section
 		this.createAnalyticsSection(contentEl);
@@ -494,7 +540,7 @@ export class RoleDashboardModal extends Modal {
 				// Lock status
 				if (this.plugin.isSessionLocked()) {
 					const remaining = this.plugin.getRemainingLockTime();
-					statusSection.createDiv({
+					this.lockEl = statusSection.createDiv({
 						text: `🔒 Session locked for ${remaining} more seconds`,
 						cls: 'session-locked-warning'
 					});
@@ -569,6 +615,7 @@ export class RoleDashboardModal extends Modal {
 		if (this.plugin.data.state.activeRoleId && this.plugin.data.state.activeStartAt) {
 			this.timerInterval = window.setInterval(() => {
 				this.updateDurationDisplay();
+				this.updateLockDisplay();
 			}, 1000);
 		}
 	}
@@ -594,6 +641,19 @@ export class RoleDashboardModal extends Modal {
 		}
 
 		this.durationEl.setText(`Duration: ${durationText}`);
+	}
+
+	private updateLockDisplay(): void {
+		if (!this.lockEl) return;
+
+		if (this.plugin.isSessionLocked()) {
+			const remaining = this.plugin.getRemainingLockTime();
+			this.lockEl.setText(`🔒 Session locked for ${remaining} more seconds`);
+		} else {
+			// Session is no longer locked, remove the element
+			this.lockEl.remove();
+			this.lockEl = null;
+		}
 	}
 
 	onClose() {
@@ -727,42 +787,25 @@ export class IconPickerModal extends Modal {
 					btn.removeClass('selected');
 				}
 
-				// Update icon color by finding the SVG element
-				const svgElement = btn.querySelector('svg');
-				if (svgElement) {
-					svgElement.setAttribute('fill', isSelected ? '#007acc' : '#666');
+				// Update the icon color by recreating the icon element
+				const iconEl = btn.querySelector('.icon-element') as HTMLElement;
+				if (iconEl && iconKey) {
+					iconEl.empty();
+					try {
+						const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
+						iconEl.appendChild(iconElement);
+					} catch (error) {
+						console.error('IconPickerModal: Error updating icon for', iconKey, error);
+						iconEl.textContent = iconKey.charAt(0).toUpperCase();
+					}
 				}
 			}
 		});
 	}
 
 	private updateSelectedDisplay(container: HTMLElement): void {
-		// Remove existing selected display
-		const existing = container.querySelector('.selected-icon-display');
-		if (existing) existing.remove();
-
-		if (this.selectedIcon) {
-			const selectedDisplay = container.createDiv({
-				cls: 'selected-icon-display'
-			});
-
-			const iconDisplay = selectedDisplay.createDiv({
-				cls: 'selected-icon-container'
-			});
-			const iconElement = IconLibrary.createIconElement(this.selectedIcon, 20, '#007acc');
-			iconDisplay.appendChild(iconElement);
-
-			selectedDisplay.createSpan({
-				text: this.selectedIcon.charAt(0).toUpperCase() + this.selectedIcon.slice(1),
-				cls: 'selected-icon-name'
-			});
-		} else {
-			// Show "no icon selected" state
-			container.createDiv({
-				cls: 'no-icon-selected',
-				text: 'No icon selected'
-			});
-		}
+		// Don't show selected icon display below the grid
+		// Selection is indicated by color change in the grid itself
 	}
 
 	onClose() {

@@ -11,6 +11,9 @@ export class RoleSwitchView extends ItemView {
 	private plugin: RoleSwitchPlugin;
 	private timerInterval: number | null = null;
 	private durationElement: HTMLElement | null = null;
+	private lockElement: HTMLElement | null = null;
+	private roleLockElements: Map<string, HTMLElement> = new Map();
+	private endSessionButton: HTMLButtonElement | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: RoleSwitchPlugin) {
 		super(leaf);
@@ -97,15 +100,37 @@ export class RoleSwitchView extends ItemView {
 		// Header with plugin branding
 		const header = container.createDiv({ cls: 'side-panel-header' });
 
-		// RoleSwitch icon using existing icon library
+		// RoleSwitch logo
 		const headerIcon = header.createDiv({ cls: 'header-icon' });
 		try {
-			const iconElement = IconLibrary.createIconElement('gear', 20, 'var(--interactive-accent)');
+			// Use plugin resource path
+			const adapter = this.app.vault.adapter;
+			const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
+			const logo = headerIcon.createEl('img', {
+				attr: {
+					src: `app://local/${pluginDir}/image/logo.png`,
+					alt: 'RoleSwitch Logo'
+				},
+				cls: 'header-logo'
+			});
+			logo.style.width = '24px';
+			logo.style.height = '24px';
+
+			// Fallback if image fails to load
+			logo.addEventListener('error', () => {
+				headerIcon.empty();
+				const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
+				if (iconElement.firstChild) {
+					headerIcon.appendChild(iconElement.firstChild as Node);
+				}
+			});
+		} catch (error) {
+			console.error('RoleSwitchView: Error loading logo:', error);
+			// Fallback to icon
+			const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
 			if (iconElement.firstChild) {
 				headerIcon.appendChild(iconElement.firstChild as Node);
 			}
-		} catch (error) {
-			console.error('RoleSwitchView: Error creating header icon:', error);
 		}
 
 		const headerTitle = header.createEl('h2', {
@@ -202,10 +227,12 @@ export class RoleSwitchView extends ItemView {
 				// Lock status
 				if (this.plugin.isSessionLocked()) {
 					const remaining = this.plugin.getRemainingLockTime();
-					statusCard.createDiv({
+					this.lockElement = statusCard.createDiv({
 						text: `🔒 Locked (${remaining}s)`,
 						cls: 'session-locked'
 					});
+				} else {
+					this.lockElement = null;
 				}
 			}
 		} else {
@@ -297,16 +324,29 @@ export class RoleSwitchView extends ItemView {
 			}
 		});
 
-		// End session button (if active)
-		if (this.plugin.data.state.activeRoleId && !this.plugin.isSessionLocked()) {
-			const endBtn = actionsContainer.createEl('button', {
+		// End session button (if active) - always visible but disabled when locked
+		if (this.plugin.data.state.activeRoleId) {
+			const isLocked = this.plugin.isSessionLocked();
+			this.endSessionButton = actionsContainer.createEl('button', {
 				text: '⏹️ End Session',
 				cls: 'quick-action-btn end-session'
 			});
-			endBtn.addEventListener('click', () => {
-				this.plugin.endSession();
-				this.refresh();
+
+			if (isLocked) {
+				this.endSessionButton.disabled = true;
+				this.endSessionButton.addClass('locked');
+				const remaining = this.plugin.getRemainingLockTime();
+				this.endSessionButton.title = `Session locked for ${remaining} more seconds`;
+			}
+
+			this.endSessionButton.addEventListener('click', () => {
+				if (!this.plugin.isSessionLocked()) {
+					this.plugin.endSession();
+					this.refresh();
+				}
 			});
+		} else {
+			this.endSessionButton = null;
 		}
 	}
 
@@ -315,6 +355,9 @@ export class RoleSwitchView extends ItemView {
 		rolesSection.createEl('h3', { text: 'Roles' });
 
 		const rolesGrid = rolesSection.createDiv({ cls: 'compact-roles-grid' });
+
+		// Clear the lock elements map before recreating role cards
+		this.roleLockElements.clear();
 
 		this.plugin.data.roles.forEach(role => {
 			this.createCompactRoleCard(rolesGrid, role);
@@ -355,17 +398,23 @@ export class RoleSwitchView extends ItemView {
 		// Lock status
 		if (isLocked) {
 			const remaining = this.plugin.getRemainingLockTime();
-			roleCard.createDiv({
+			const lockStatusEl = roleCard.createDiv({
 				text: `🔒 ${remaining}s`,
 				cls: 'lock-status'
 			});
+			// Store reference to this lock element for real-time updates
+			this.roleLockElements.set(role.id, lockStatusEl);
 		}
 
 		// Click handler
-		roleCard.addEventListener('click', () => {
+		roleCard.addEventListener('click', (event) => {
 			if (isLocked) {
 				return; // Can't switch when locked
 			}
+
+			// Add visual click effect
+			roleCard.addClass('clicked');
+			setTimeout(() => roleCard.removeClass('clicked'), 200);
 
 			if (isActive) {
 				// Open dashboard when clicking active role
@@ -432,6 +481,7 @@ export class RoleSwitchView extends ItemView {
 		// Update timer every second
 		this.timerInterval = window.setInterval(() => {
 			this.updateDurationDisplay();
+			this.updateLockDisplay();
 		}, 1000);
 	}
 
@@ -466,5 +516,53 @@ export class RoleSwitchView extends ItemView {
 		}
 
 		this.durationElement.textContent = displayText;
+	}
+
+	private updateLockDisplay(): void {
+		const isLocked = this.plugin.isSessionLocked();
+
+		// Update lock display in Current History section
+		if (this.lockElement) {
+			if (isLocked) {
+				const remaining = this.plugin.getRemainingLockTime();
+				this.lockElement.textContent = `🔒 Locked (${remaining}s)`;
+			} else {
+				// Session is no longer locked, remove the element
+				this.lockElement.remove();
+				this.lockElement = null;
+			}
+		}
+
+		// Update lock displays in role cards
+		if (this.plugin.data.state.activeRoleId) {
+			const activeRoleId = this.plugin.data.state.activeRoleId;
+			const lockEl = this.roleLockElements.get(activeRoleId);
+
+			if (lockEl) {
+				if (isLocked) {
+					const remaining = this.plugin.getRemainingLockTime();
+					lockEl.textContent = `🔒 ${remaining}s`;
+				} else {
+					// Session is no longer locked, remove the element
+					lockEl.remove();
+					this.roleLockElements.delete(activeRoleId);
+				}
+			}
+		}
+
+		// Update end session button state
+		if (this.endSessionButton) {
+			if (isLocked) {
+				this.endSessionButton.disabled = true;
+				this.endSessionButton.addClass('locked');
+				const remaining = this.plugin.getRemainingLockTime();
+				this.endSessionButton.title = `Session locked for ${remaining} more seconds`;
+			} else {
+				// Session is no longer locked, enable the button
+				this.endSessionButton.disabled = false;
+				this.endSessionButton.removeClass('locked');
+				this.endSessionButton.title = '';
+			}
+		}
 	}
 }

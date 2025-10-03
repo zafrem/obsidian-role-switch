@@ -22,12 +22,44 @@ export interface Session {
 	notes: Note[];
 }
 
+export interface ApiKey {
+	id: string;
+	name: string;
+	key: string;
+	secret: string;
+	createdAt: string;
+	lastUsed?: string;
+	permissions: ApiPermission[];
+	isActive: boolean;
+}
+
+export interface SyncEndpoint {
+	id: string;
+	name: string;
+	url: string;
+	apiKey: string;
+	isActive: boolean;
+	lastSync?: string;
+	syncDirection: 'push' | 'pull' | 'bidirectional';
+}
+
+export type ApiPermission = 'read' | 'write' | 'admin';
+
 export interface RoleSwitchSettings {
 	transitionSeconds: number;
 	minSessionSeconds: number;
 	showStatusBar: boolean;
 	showWorkspaceBorder: boolean;
 	borderOpacity: number;
+	enableApi: boolean;
+	apiPort: number;
+	enableAuthentication: boolean;
+	enableSync: boolean;
+	syncInterval: number; // minutes
+	deviceId: string;
+	deviceName: string;
+	showPeriodicReminder: boolean;
+	reminderIntervalMinutes: number;
 }
 
 export interface RoleSwitchState {
@@ -58,6 +90,8 @@ export interface RoleSwitchData {
 	events: RoleSwitchEvent[];
 	state: RoleSwitchState;
 	settings: RoleSwitchSettings;
+	apiKeys: ApiKey[];
+	syncEndpoints: SyncEndpoint[];
 }
 
 export const DEFAULT_SETTINGS: RoleSwitchSettings = {
@@ -65,7 +99,16 @@ export const DEFAULT_SETTINGS: RoleSwitchSettings = {
 	minSessionSeconds: 300,
 	showStatusBar: true,
 	showWorkspaceBorder: true,
-	borderOpacity: 0.3
+	borderOpacity: 0.3,
+	enableApi: false,
+	apiPort: 3030,
+	enableAuthentication: true,
+	enableSync: false,
+	syncInterval: 5,
+	deviceId: '',
+	deviceName: 'Obsidian Device',
+	showPeriodicReminder: false,
+	reminderIntervalMinutes: 1
 };
 
 export const ROLESWITCH_VIEW_TYPE = 'role-switch-view';
