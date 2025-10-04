@@ -86,7 +86,6 @@ export class RoleSwitchApi {
 			// Note: This is a simplified implementation - in a real scenario,
 			// you'd need to handle CORS, security, and other HTTP server concerns
 			this.isServerRunning = true;
-			console.log(`RoleSwitch API server started on port ${this.port}`);
 		} catch (error) {
 			throw new Error(`Failed to start API server: ${error}`);
 		}
@@ -99,7 +98,6 @@ export class RoleSwitchApi {
 
 		try {
 			this.isServerRunning = false;
-			console.log('RoleSwitch API server stopped');
 		} catch (error) {
 			throw new Error(`Failed to stop API server: ${error}`);
 		}

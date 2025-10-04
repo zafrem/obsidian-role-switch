@@ -96,7 +96,8 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// Add visual role indicator
 		const colorEl = document.createElement('div');
 		colorEl.addClass('role-color-indicator');
-		colorEl.style.backgroundColor = role.colorHex;
+		colorEl.addClass('role-color-bg');
+		colorEl.setCssProps({ '--role-color': role.colorHex });
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconEl = document.createElement('div');
@@ -611,7 +612,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		const { contentEl } = modal;
 
 		let nameInput: HTMLInputElement;
-		let permissions: string[] = ['read'];
+		let permissions: ApiPermission[] = ['read'];
 
 		// Key name
 		const nameSetting = new Setting(contentEl)
@@ -636,7 +637,10 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 					.addOption('admin', 'Admin - Full access including key management')
 					.setValue('read')
 					.onChange(value => {
-						permissions = [value as 'read' | 'write' | 'admin'];
+						const validPermissions: ApiPermission[] = ['read', 'write', 'admin'];
+						if (validPermissions.includes(value as ApiPermission)) {
+							permissions = [value as ApiPermission];
+						}
 					});
 			});
 
@@ -652,7 +656,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			}
 
 			try {
-				const apiKey = this.plugin.auth.generateApiKey(name, permissions as any);
+				const apiKey = this.plugin.auth.generateApiKey(name, permissions);
 				new Notice(`API key created: ${apiKey.key}\nSecret: ${apiKey.secret}`, 10000);
 				modal.close();
 				this.display(); // Refresh settings
@@ -910,7 +914,6 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			try {
 				this.save();
 			} catch (error) {
-				console.error('RoleEditModal: Error in save method:', error);
 				new Notice('Error in save method: ' + (error as Error).message);
 			}
 		});
@@ -1012,7 +1015,6 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			}
 			this.close();
 		} catch (error) {
-			console.error('RoleEditModal: Error saving role:', error);
 			new Notice('Failed to save role');
 		}
 	}

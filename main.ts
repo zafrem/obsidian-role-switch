@@ -70,7 +70,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			try {
 				await this.api.startServer();
 			} catch (error) {
-				console.error('Failed to start RoleSwitch API server:', error);
+				// API server failed to start
 			}
 		}
 
@@ -116,7 +116,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			try {
 				await this.api.stopServer();
 			} catch (error) {
-				console.error('Failed to stop RoleSwitch API server:', error);
+				// API server failed to stop
 			}
 		}
 	}
@@ -148,8 +148,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		try {
 			await this.saveData(this.data);
 		} catch (error) {
-			console.error('RoleSwitch: Failed to save plugin data:', error);
-			new Notice('RoleSwitch: Failed to save data. Please check console for details.');
+			new Notice('RoleSwitch: Failed to save data.');
 		}
 	}
 
@@ -443,15 +442,12 @@ export default class RoleSwitchPlugin extends Plugin {
 				leaf = leftLeaf;
 				await leaf.setViewState({ type: ROLESWITCH_VIEW_TYPE, active: true });
 			} else {
-				console.error('RoleSwitchPlugin: No left leaf available!');
 				return;
 			}
 		}
 
 		if (leaf) {
 			workspace.revealLeaf(leaf);
-		} else {
-			console.error('RoleSwitchPlugin: No leaf available to reveal!');
 		}
 	}
 
@@ -479,11 +475,12 @@ export default class RoleSwitchPlugin extends Plugin {
 			const role = this.data.roles.find(r => r.id === this.data.state.activeRoleId);
 			if (role) {
 				this.statusBarItem.setText(`🎯 ${role.name}`);
-				this.statusBarItem.style.color = role.colorHex;
+				this.statusBarItem.addClass('role-active');
+				this.statusBarItem.setCssProps({ '--role-color': role.colorHex });
 			}
 		} else {
 			this.statusBarItem.setText('⏸️ No active role');
-			this.statusBarItem.style.color = 'var(--text-muted)';
+			this.statusBarItem.addClass('role-inactive');
 		}
 	}
 
@@ -506,9 +503,10 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		this.borderEl = document.createElement('div');
 		this.borderEl.addClass('workspace-border');
-		this.borderEl.style.borderColor = role.colorHex;
-		this.borderEl.style.opacity = this.data.settings.borderOpacity.toString();
-		this.borderEl.style.pointerEvents = 'none';
+		this.borderEl.setCssProps({
+			'--role-color': role.colorHex,
+			'--border-opacity': this.data.settings.borderOpacity.toString()
+		});
 		this.borderEl.setAttribute('data-role-switch-border', 'true');
 
 		// Append to app container instead of body for better compatibility
@@ -596,7 +594,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			name: 'Start API server',
 			callback: async () => {
 				if (!this.api) {
-					console.error('API not initialized');
+					new Notice('API not initialized');
 					return;
 				}
 				try {
@@ -613,7 +611,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			name: 'Stop API server',
 			callback: async () => {
 				if (!this.api) {
-					console.error('API not initialized');
+					new Notice('API not initialized');
 					return;
 				}
 				try {
@@ -720,8 +718,8 @@ export default class RoleSwitchPlugin extends Plugin {
 		// Create a styled notice with the role color
 		const fragment = document.createDocumentFragment();
 		const span = document.createElement('span');
-		span.style.color = role.colorHex;
-		span.style.fontWeight = 'bold';
+		span.addClass('role-color-bold');
+		span.setCssProps({ '--role-color': role.colorHex });
 		span.textContent = `You are now playing the role of '${role.name}'. Don't forget, you are playing the role of '${role.name}'.`;
 		fragment.appendChild(span);
 

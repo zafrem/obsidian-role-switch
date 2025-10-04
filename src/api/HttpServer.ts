@@ -380,11 +380,16 @@ export class RoleSwitchHttpServer {
 	}
 
 	private async handleGetEvents(req: HttpRequest): Promise<HttpResponse> {
+		const typeValue = req.query?.type;
+		const validTypes = ['start', 'end', 'switch', 'cancelTransition'];
+
 		const filters = {
 			startDate: req.query?.startDate,
 			endDate: req.query?.endDate,
 			roleId: req.query?.roleId,
-			type: req.query?.type as any
+			type: (typeValue && validTypes.includes(typeValue))
+				? typeValue as 'start' | 'end' | 'switch' | 'cancelTransition'
+				: undefined
 		};
 
 		const result = this.api.getEvents(filters);

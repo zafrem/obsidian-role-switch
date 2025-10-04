@@ -1,10 +1,15 @@
 // Modal Components for RoleSwitch Plugin
 
-import { App, Modal, Notice, Platform } from 'obsidian';
+import { App, Modal, Notice, Platform, DataAdapter } from 'obsidian';
 import { Role, Note } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import type RoleSwitchPlugin from '../../main';
+
+// Type for FileSystemAdapter with basePath property
+interface FileSystemAdapter extends DataAdapter {
+	basePath: string;
+}
 
 export class TransitionModal extends Modal {
 	private plugin: RoleSwitchPlugin;
@@ -37,10 +42,11 @@ export class TransitionModal extends Modal {
 			contentEl.addClass('mobile');
 		}
 
-		contentEl.createEl('div', {
+		const titleEl = contentEl.createEl('div', {
 			text: `Switching to: ${this.targetRole.name}`,
-			cls: 'transition-title'
-		}).style.color = this.targetRole.colorHex;
+			cls: 'transition-title role-color-text'
+		});
+		titleEl.setCssProps({ '--role-color': this.targetRole.colorHex });
 
 		const countdownEl = contentEl.createEl('div', {
 			text: `${this.remainingSeconds}s`,
@@ -149,31 +155,32 @@ export class RolePickerModal extends Modal {
 		const isActive = this.plugin.data.state.activeRoleId === role.id;
 
 		const card = container.createDiv({
-			cls: `role-card-picker ${isActive ? 'active' : ''}`
+			cls: `role-card-picker ${isActive ? 'active role-color-border' : ''}`
 		});
 
 		if (isActive) {
-			card.style.borderColor = role.colorHex;
+			card.setCssProps({ '--role-color': role.colorHex });
 		}
 
 		// Hover effect
 		card.addEventListener('mouseenter', () => {
 			if (!isActive) {
-				card.style.borderColor = role.colorHex;
+				card.addClass('role-color-border');
+				card.setCssProps({ '--role-color': role.colorHex });
 			}
 		});
 
 		card.addEventListener('mouseleave', () => {
 			if (!isActive) {
-				card.style.borderColor = '';
+				card.removeClass('role-color-border');
 			}
 		});
 
 		// Role icon/color
 		const iconContainer = card.createDiv({
-			cls: 'role-icon-picker'
+			cls: 'role-icon-picker role-color-bg'
 		});
-		iconContainer.style.backgroundColor = role.colorHex;
+		iconContainer.setCssProps({ '--role-color': role.colorHex });
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconElement = IconLibrary.createIconElement(role.icon, 20, 'white');
@@ -183,11 +190,11 @@ export class RolePickerModal extends Modal {
 		// Role name
 		const nameEl = card.createEl('h3', {
 			text: role.name,
-			cls: `role-name-picker ${isActive ? 'active' : ''}`
+			cls: `role-name-picker ${isActive ? 'active role-color-text' : ''}`
 		});
 
 		if (isActive) {
-			nameEl.style.color = role.colorHex;
+			nameEl.setCssProps({ '--role-color': role.colorHex });
 		}
 
 		// Role description
@@ -202,9 +209,9 @@ export class RolePickerModal extends Modal {
 		if (isActive) {
 			const statusEl = card.createDiv({
 				text: '● Active',
-				cls: 'role-status-active'
+				cls: 'role-status-active role-color-text'
 			});
-			statusEl.style.color = role.colorHex;
+			statusEl.setCssProps({ '--role-color': role.colorHex });
 		}
 
 		// Click handler
@@ -301,7 +308,6 @@ export class NoteEditModal extends Modal {
 			this.close();
 		} catch (error) {
 			new Notice('Failed to save note');
-			console.error('Error saving note:', error);
 		}
 	}
 
@@ -314,7 +320,6 @@ export class NoteEditModal extends Modal {
 			this.close();
 		} catch (error) {
 			new Notice('Failed to delete note');
-			console.error('Error deleting note:', error);
 		}
 	}
 
@@ -352,18 +357,17 @@ export class RoleDashboardModal extends Modal {
 		if (!Platform.isMobile) {
 			try {
 				const adapter = this.app.vault.adapter;
-				if (adapter && (adapter as any).basePath) {
-					const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
+				if (adapter && 'basePath' in adapter) {
+					const fsAdapter = adapter as FileSystemAdapter;
+					const configDir = this.app.vault.configDir;
+					const pluginDir = fsAdapter.basePath + '/' + configDir + '/plugins/obsidian-role-switch';
 					const logo = headerContainer.createEl('img', {
 						attr: {
 							src: `app://local/${pluginDir}/image/logo.png`,
 							alt: 'RoleSwitch Logo'
 						},
-						cls: 'dashboard-logo'
+						cls: 'dashboard-logo size-32'
 					});
-					logo.style.width = '32px';
-					logo.style.height = '32px';
-					logo.style.marginRight = '12px';
 
 					// Fallback if image fails to load
 					logo.addEventListener('error', () => {
@@ -371,7 +375,7 @@ export class RoleDashboardModal extends Modal {
 					});
 				}
 			} catch (error) {
-				console.error('RoleDashboardModal: Error loading logo (non-critical):', error);
+				// Logo loading failed, continue without logo
 			}
 		}
 
@@ -515,14 +519,14 @@ export class RoleDashboardModal extends Modal {
 
 				// Active role color dot with icon
 				const activeRoleDot = activeInfo.createDiv({
-					cls: 'active-role-dot'
+					cls: 'active-role-dot role-color-bg'
 				});
-				activeRoleDot.style.backgroundColor = activeRole.colorHex;
+				activeRoleDot.setCssProps({ '--role-color': activeRole.colorHex });
 
 				// Add icon if available
 				if (activeRole.icon && IconLibrary.ICONS[activeRole.icon]) {
 					const iconElement = IconLibrary.createIconElement(activeRole.icon, 12, 'white');
-					iconElement.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+					iconElement.addClass('icon-filter-shadow');
 					activeRoleDot.appendChild(iconElement);
 				}
 
@@ -585,9 +589,9 @@ export class RoleDashboardModal extends Modal {
 
 					// Role indicator
 					const indicator = sessionEl.createDiv({
-						cls: 'history-role-indicator'
+						cls: 'history-role-indicator role-color-bg'
 					});
-					indicator.style.backgroundColor = role.colorHex;
+					indicator.setCssProps({ '--role-color': role.colorHex });
 
 					// Session info
 					const sessionInfo = sessionEl.createDiv();
@@ -757,7 +761,6 @@ export class IconPickerModal extends Modal {
 			const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
 			iconEl.appendChild(iconElement);
 		} catch (error) {
-			console.error('IconPickerModal: Error creating icon for', iconKey, error);
 			// Fallback text if icon creation fails
 			iconEl.textContent = iconKey.charAt(0).toUpperCase();
 		}
@@ -800,7 +803,6 @@ export class IconPickerModal extends Modal {
 						const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
 						iconEl.appendChild(iconElement);
 					} catch (error) {
-						console.error('IconPickerModal: Error updating icon for', iconKey, error);
 						iconEl.textContent = iconKey.charAt(0).toUpperCase();
 					}
 				}

@@ -70,15 +70,12 @@ export class SyncService {
 		this.syncIntervalId = window.setInterval(() => {
 			this.syncAllEndpoints();
 		}, intervalMs);
-
-		console.log(`RoleSwitch: Auto-sync started with ${this.plugin.data.settings.syncInterval}min interval`);
 	}
 
 	stopAutoSync(): void {
 		if (this.syncIntervalId) {
 			clearInterval(this.syncIntervalId);
 			this.syncIntervalId = null;
-			console.log('RoleSwitch: Auto-sync stopped');
 		}
 	}
 
@@ -89,7 +86,7 @@ export class SyncService {
 			try {
 				await this.syncWithEndpoint(endpoint);
 			} catch (error) {
-				console.error(`RoleSwitch: Failed to sync with ${endpoint.name}:`, error);
+				// Sync failed, will retry on next interval
 			}
 		}
 	}
@@ -282,8 +279,6 @@ export class SyncService {
 		this.plugin.updateStatusBar();
 		this.plugin.updateWorkspaceBorder();
 		this.plugin.refreshSidePanel();
-
-		console.log(`RoleSwitch: Merged sync data from ${syncData.deviceName} (${syncData.deviceId})`);
 	}
 
 	// ====================

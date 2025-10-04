@@ -1,11 +1,16 @@
 // Side Panel View Component
 
-import { ItemView, WorkspaceLeaf, Notice, Platform } from 'obsidian';
+import { ItemView, WorkspaceLeaf, Notice, Platform, DataAdapter } from 'obsidian';
 import { ROLESWITCH_VIEW_TYPE, Role } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { RoleDashboardModal } from './Modals';
 import type RoleSwitchPlugin from '../../main';
+
+// Type for FileSystemAdapter with basePath property
+interface FileSystemAdapter extends DataAdapter {
+	basePath: string;
+}
 
 export class RoleSwitchView extends ItemView {
 	private plugin: RoleSwitchPlugin;
@@ -36,7 +41,6 @@ export class RoleSwitchView extends ItemView {
 		const container = this.containerEl.children[1];
 
 		if (!container) {
-			console.error('RoleSwitchView: No container element found!');
 			return;
 		}
 
@@ -50,7 +54,6 @@ export class RoleSwitchView extends ItemView {
 		try {
 			this.createSidePanelDashboard(container as HTMLElement);
 		} catch (error) {
-			console.error('RoleSwitchView: Error creating dashboard:', error);
 			// Fallback: create a simple test display
 			this.createFallbackDashboard(container as HTMLElement);
 		}
@@ -113,17 +116,17 @@ export class RoleSwitchView extends ItemView {
 			try {
 				// Use plugin resource path
 				const adapter = this.app.vault.adapter;
-				if (adapter && (adapter as any).basePath) {
-					const pluginDir = (adapter as any).basePath + '/.obsidian/plugins/obsidian-role-switch';
+				if (adapter && 'basePath' in adapter) {
+					const fsAdapter = adapter as FileSystemAdapter;
+					const configDir = this.app.vault.configDir;
+					const pluginDir = fsAdapter.basePath + '/' + configDir + '/plugins/obsidian-role-switch';
 					const logo = headerIcon.createEl('img', {
 						attr: {
 							src: `app://local/${pluginDir}/image/logo.png`,
 							alt: 'RoleSwitch Logo'
 						},
-						cls: 'header-logo'
+						cls: 'header-logo size-24'
 					});
-					logo.style.width = '24px';
-					logo.style.height = '24px';
 
 					// Fallback if image fails to load
 					logo.addEventListener('error', () => {
@@ -135,7 +138,6 @@ export class RoleSwitchView extends ItemView {
 					});
 				}
 			} catch (error) {
-				console.error('RoleSwitchView: Error loading logo (non-critical):', error);
 				// Fallback to icon
 				const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
 				if (iconElement.firstChild) {
@@ -153,21 +155,21 @@ export class RoleSwitchView extends ItemView {
 		try {
 			this.createCompactRolesSection(container);
 		} catch (error) {
-			console.error('RoleSwitchView: Error creating roles section:', error);
+			// Failed to create roles section
 		}
 
 		// Quick actions section
 		try {
 			this.createQuickActionsSection(container);
 		} catch (error) {
-			console.error('RoleSwitchView: Error creating quick actions section:', error);
+			// Failed to create quick actions section
 		}
 
 		// Current status section
 		try {
 			this.createCompactStatusSection(container);
 		} catch (error) {
-			console.error('RoleSwitchView: Error creating status section:', error);
+			// Failed to create status section
 		}
 	}
 
@@ -187,13 +189,13 @@ export class RoleSwitchView extends ItemView {
 
 				// Role icon/color
 				const roleIndicator = statusInfo.createDiv({
-					cls: 'role-indicator'
+					cls: 'role-indicator role-color-bg'
 				});
-				roleIndicator.style.backgroundColor = activeRole.colorHex;
+				roleIndicator.setCssProps({ '--role-color': activeRole.colorHex });
 
 				if (activeRole.icon && IconLibrary.ICONS[activeRole.icon]) {
 					const iconElement = IconLibrary.createIconElement(activeRole.icon, 12, 'white');
-					iconElement.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+					iconElement.addClass('icon-filter-shadow');
 					roleIndicator.appendChild(iconElement);
 				}
 
@@ -201,9 +203,9 @@ export class RoleSwitchView extends ItemView {
 				const roleInfo = statusInfo.createDiv({ cls: 'role-info' });
 				const roleName = roleInfo.createEl('div', {
 					text: activeRole.name,
-					cls: 'role-name'
+					cls: 'role-name role-color-text'
 				});
-				roleName.style.color = activeRole.colorHex;
+				roleName.setCssProps({ '--role-color': activeRole.colorHex });
 
 				// Duration with real-time updates
 				if (this.plugin.data.state.activeStartAt) {
@@ -283,8 +285,8 @@ export class RoleSwitchView extends ItemView {
 					const sessionEl = container.createDiv({ cls: 'history-session' });
 
 					// Small role indicator
-					const indicator = sessionEl.createDiv({ cls: 'role-indicator' });
-					indicator.style.backgroundColor = role.colorHex;
+					const indicator = sessionEl.createDiv({ cls: 'role-indicator role-color-bg' });
+					indicator.setCssProps({ '--role-color': role.colorHex });
 
 					// Session info
 					const sessionInfo = sessionEl.createDiv({ cls: 'session-info' });
@@ -330,9 +332,6 @@ export class RoleSwitchView extends ItemView {
 			try {
 				new RoleDashboardModal(this.app, this.plugin).open();
 			} catch (error) {
-				console.error('RoleSwitchView: Error opening dashboard:', error);
-				console.error('Error details:', error instanceof Error ? error.message : error);
-				console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
 				new Notice(`Dashboard error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 		});
@@ -382,22 +381,22 @@ export class RoleSwitchView extends ItemView {
 		const isLocked = isActive && this.plugin.isSessionLocked();
 
 		const roleCard = container.createDiv({
-			cls: `compact-role-card ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`
+			cls: `compact-role-card ${isActive ? 'active role-color-border' : ''} ${isLocked ? 'locked' : ''}`
 		});
 
 		if (isActive) {
-			roleCard.style.borderColor = role.colorHex;
+			roleCard.setCssProps({ '--role-color': role.colorHex });
 		}
 
 		const roleHeader = roleCard.createDiv({ cls: 'compact-role-header' });
 		
 		// Role icon/color circle
-		const roleIndicator = roleHeader.createDiv({ cls: 'compact-role-icon' });
-		roleIndicator.style.backgroundColor = role.colorHex;
+		const roleIndicator = roleHeader.createDiv({ cls: 'compact-role-icon role-color-bg' });
+		roleIndicator.setCssProps({ '--role-color': role.colorHex });
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconElement = IconLibrary.createIconElement(role.icon, 10, 'white');
-			iconElement.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+			iconElement.addClass('icon-filter-shadow');
 			roleIndicator.appendChild(iconElement);
 		}
 

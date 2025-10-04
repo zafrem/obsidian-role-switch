@@ -43,71 +43,55 @@ export class IconLibrary {
 
 	static createIconElement(iconKey: string, size: number = 24, color: string = 'currentColor'): HTMLElement {
 		const container = document.createElement('div');
-		container.style.display = 'inline-flex';
-		container.style.alignItems = 'center';
-		container.style.justifyContent = 'center';
-		container.style.width = size + 'px';
-		container.style.height = size + 'px';
+		container.addClass('icon-element-container');
+		container.setCssProps({
+			'width': size + 'px',
+			'height': size + 'px'
+		});
 
-		// On mobile, use innerHTML method instead of DOMParser for better compatibility
-		if (Platform.isMobile) {
-			const iconSvg = this.getIcon(iconKey);
-			if (iconSvg) {
-				container.innerHTML = iconSvg;
-				const svg = container.querySelector('svg');
+		// Use DOMParser for safe SVG parsing on all platforms
+		const iconSvg = this.getIcon(iconKey);
+
+		if (iconSvg) {
+			try {
+				// Parse SVG string using DOMParser (safe from XSS)
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(iconSvg, 'image/svg+xml');
+				const svg = doc.querySelector('svg');
+
 				if (svg) {
+					// Set attributes safely
 					svg.setAttribute('width', size.toString());
 					svg.setAttribute('height', size.toString());
 					svg.setAttribute('fill', color);
-					svg.style.display = 'block';
+
+					// Import and add the SVG node to container
+					const importedSvg = document.importNode(svg, true);
+					container.appendChild(importedSvg);
 				} else {
-					// Fallback if SVG parsing fails
-					container.innerHTML = '';
 					container.textContent = iconKey.charAt(0).toUpperCase();
-					container.style.color = color;
-					container.style.fontSize = (size * 0.6) + 'px';
-					container.style.fontWeight = 'bold';
+					container.addClass('icon-fallback-text');
+					container.setCssProps({
+						'color': color,
+						'font-size': (size * 0.6) + 'px'
+					});
 				}
-			} else {
-				// Fallback text for missing icons
+			} catch (error) {
 				container.textContent = iconKey.charAt(0).toUpperCase();
-				container.style.color = color;
-				container.style.fontSize = (size * 0.6) + 'px';
-				container.style.fontWeight = 'bold';
+				container.addClass('icon-fallback-text');
+				container.setCssProps({
+					'color': color,
+					'font-size': (size * 0.6) + 'px'
+				});
 			}
 		} else {
-			// Desktop: use DOMParser method
-			const iconSvg = this.getIcon(iconKey);
-
-			if (iconSvg) {
-				try {
-					// Parse SVG string using DOMParser
-					const parser = new DOMParser();
-					const doc = parser.parseFromString(iconSvg, 'image/svg+xml');
-					const svg = doc.querySelector('svg');
-
-					if (svg) {
-						// Set attributes safely
-						svg.setAttribute('width', size.toString());
-						svg.setAttribute('height', size.toString());
-						svg.setAttribute('fill', color);
-						svg.style.display = 'block';
-
-						// Import and add the SVG node to container
-						const importedSvg = document.importNode(svg, true);
-						container.appendChild(importedSvg);
-					} else {
-						console.error('No SVG element found in parsed SVG for', iconKey);
-						container.textContent = iconKey.charAt(0).toUpperCase();
-					}
-				} catch (error) {
-					console.error('Error creating icon element for', iconKey, error);
-					container.textContent = iconKey.charAt(0).toUpperCase();
-				}
-			} else {
-				// Fallback text for missing icons
-				container.textContent = iconKey.charAt(0).toUpperCase();
-			}
+			// Fallback text for missing icons
+			container.textContent = iconKey.charAt(0).toUpperCase();
+			container.addClass('icon-fallback-text');
+			container.setCssProps({
+				'color': color,
+				'font-size': (size * 0.6) + 'px'
+			});
 		}
 
 		return container;

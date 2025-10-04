@@ -1031,3 +1031,69 @@
 		grid-column: span 1;
 	}
 }
+
+/* Dynamic Role Color Styling */
+/* Use CSS custom properties for dynamic role colors */
+.role-color-bg {
+	background-color: var(--role-color);
+}
+
+.role-color-text {
+	color: var(--role-color);
+}
+
+.role-color-border {
+	border-color: var(--role-color);
+}
+
+.role-color-bold {
+	color: var(--role-color);
+	font-weight: bold;
+}
+
+/* Status bar item color */
+.status-bar-item.role-active {
+	color: var(--role-color);
+}
+
+.status-bar-item.role-inactive {
+	color: var(--text-muted);
+}
+
+/* Workspace border with dynamic color */
+.workspace-border {
+	border-color: var(--role-color);
+	opacity: var(--border-opacity, 1);
+}
+
+/* Logo sizing */
+.header-logo.size-24 {
+	width: 24px;
+	height: 24px;
+}
+
+.dashboard-logo.size-32 {
+	width: 32px;
+	height: 32px;
+	margin-right: 12px;
+}
+
+/* Icon filters */
+.icon-filter-shadow {
+	filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+}
+
+/* Icon container styles */
+.icon-element-container {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.icon-element-container svg {
+	display: block;
+}
+
+.icon-fallback-text {
+	font-weight: bold;
+}
