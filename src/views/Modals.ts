@@ -1,14 +1,15 @@
 // Modal Components for RoleSwitch Plugin
 
-import { App, Modal, Notice, Platform, DataAdapter } from 'obsidian';
+import { App, Modal, Notice, Platform } from 'obsidian';
 import { Role, Note } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import type RoleSwitchPlugin from '../../main';
 
 // Type guard to check if adapter has basePath property (desktop only)
-function hasBasePath(adapter: DataAdapter): adapter is DataAdapter & { basePath: string } {
-	return 'basePath' in adapter && typeof (adapter as any).basePath === 'string';
+// Using 'any' to avoid referencing DataAdapter which is desktop-only
+function hasBasePath(adapter: any): adapter is { basePath: string } {
+	return adapter && 'basePath' in adapter && typeof adapter.basePath === 'string';
 }
 
 export class TransitionModal extends Modal {
@@ -768,7 +769,9 @@ export class IconPickerModal extends Modal {
 
 		iconBtn.addEventListener('click', () => {
 			this.selectedIcon = iconKey;
-			this.updateIconGrid(iconBtn.parentElement as HTMLElement);
+			if (iconBtn.parentElement instanceof HTMLElement) {
+				this.updateIconGrid(iconBtn.parentElement);
+			}
 			this.updateSelectedDisplay(this.contentEl);
 			if (this.updateButtonState) {
 				this.updateButtonState(true);
@@ -786,7 +789,9 @@ export class IconPickerModal extends Modal {
 		allCategoryGrids.forEach(grid => {
 			const iconButtons = grid.children;
 			for (let i = 0; i < iconButtons.length; i++) {
-				const btn = iconButtons[i] as HTMLElement;
+				const btn = iconButtons[i];
+				if (!(btn instanceof HTMLElement)) continue;
+
 				const iconKey = btn.getAttribute('data-icon-key');
 				const isSelected = iconKey === this.selectedIcon;
 
@@ -797,8 +802,8 @@ export class IconPickerModal extends Modal {
 				}
 
 				// Update the icon color by recreating the icon element
-				const iconEl = btn.querySelector('.icon-element') as HTMLElement;
-				if (iconEl && iconKey) {
+				const iconEl = btn.querySelector('.icon-element');
+				if (iconEl instanceof HTMLElement && iconKey) {
 					iconEl.empty();
 					try {
 						const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');

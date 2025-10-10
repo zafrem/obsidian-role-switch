@@ -44,9 +44,10 @@ export class IconLibrary {
 	static createIconElement(iconKey: string, size: number = 24, color: string = 'currentColor'): HTMLElement {
 		const container = document.createElement('div');
 		container.addClass('icon-element-container');
+		// Use CSS custom properties for dynamic values so themes can override
 		container.setCssProps({
-			'width': size + 'px',
-			'height': size + 'px'
+			'--icon-size': size + 'px',
+			'--icon-color': color
 		});
 
 		// Use DOMParser for safe SVG parsing on all platforms
@@ -71,27 +72,15 @@ export class IconLibrary {
 				} else {
 					container.textContent = iconKey.charAt(0).toUpperCase();
 					container.addClass('icon-fallback-text');
-					container.setCssProps({
-						'color': color,
-						'font-size': (size * 0.6) + 'px'
-					});
 				}
 			} catch (error) {
 				container.textContent = iconKey.charAt(0).toUpperCase();
 				container.addClass('icon-fallback-text');
-				container.setCssProps({
-					'color': color,
-					'font-size': (size * 0.6) + 'px'
-				});
 			}
 		} else {
 			// Fallback text for missing icons
 			container.textContent = iconKey.charAt(0).toUpperCase();
 			container.addClass('icon-fallback-text');
-			container.setCssProps({
-				'color': color,
-				'font-size': (size * 0.6) + 'px'
-			});
 		}
 
 		return container;

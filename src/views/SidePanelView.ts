@@ -1,6 +1,6 @@
 // Side Panel View Component
 
-import { ItemView, WorkspaceLeaf, Notice, Platform, DataAdapter } from 'obsidian';
+import { ItemView, WorkspaceLeaf, Notice, Platform } from 'obsidian';
 import { ROLESWITCH_VIEW_TYPE, Role } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
@@ -8,8 +8,9 @@ import { RoleDashboardModal } from './Modals';
 import type RoleSwitchPlugin from '../../main';
 
 // Type guard to check if adapter has basePath property (desktop only)
-function hasBasePath(adapter: DataAdapter): adapter is DataAdapter & { basePath: string } {
-	return 'basePath' in adapter && typeof (adapter as any).basePath === 'string';
+// Using 'any' to avoid referencing DataAdapter which is desktop-only
+function hasBasePath(adapter: any): adapter is { basePath: string } {
+	return adapter && 'basePath' in adapter && typeof adapter.basePath === 'string';
 }
 
 export class RoleSwitchView extends ItemView {
@@ -44,6 +45,11 @@ export class RoleSwitchView extends ItemView {
 			return;
 		}
 
+		// Type check: ensure container is HTMLElement
+		if (!(container instanceof HTMLElement)) {
+			return;
+		}
+
 		container.empty();
 		container.addClass('role-switch-view');
 
@@ -52,10 +58,10 @@ export class RoleSwitchView extends ItemView {
 
 		// Create side panel dashboard
 		try {
-			this.createSidePanelDashboard(container as HTMLElement);
+			this.createSidePanelDashboard(container);
 		} catch (error) {
 			// Fallback: create a simple test display
-			this.createFallbackDashboard(container as HTMLElement);
+			this.createFallbackDashboard(container);
 		}
 	}
 
@@ -109,8 +115,8 @@ export class RoleSwitchView extends ItemView {
 		// Skip logo on mobile, use icon instead
 		if (Platform.isMobile) {
 			const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-			if (iconElement.firstChild) {
-				headerIcon.appendChild(iconElement.firstChild as Node);
+			if (iconElement.firstChild instanceof Node) {
+				headerIcon.appendChild(iconElement.firstChild);
 			}
 		} else {
 			try {
@@ -131,16 +137,16 @@ export class RoleSwitchView extends ItemView {
 					logo.addEventListener('error', () => {
 						headerIcon.empty();
 						const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-						if (iconElement.firstChild) {
-							headerIcon.appendChild(iconElement.firstChild as Node);
+						if (iconElement.firstChild instanceof Node) {
+							headerIcon.appendChild(iconElement.firstChild);
 						}
 					});
 				}
 			} catch (error) {
 				// Fallback to icon
 				const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-				if (iconElement.firstChild) {
-					headerIcon.appendChild(iconElement.firstChild as Node);
+				if (iconElement.firstChild instanceof Node) {
+					headerIcon.appendChild(iconElement.firstChild);
 				}
 			}
 		}

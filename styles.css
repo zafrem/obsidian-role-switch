@@ -1088,6 +1088,8 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	width: var(--icon-size, 24px);
+	height: var(--icon-size, 24px);
 }
 
 .icon-element-container svg {
@@ -1096,6 +1098,8 @@
 
 .icon-fallback-text {
 	font-weight: bold;
+	color: var(--icon-color, currentColor);
+	font-size: calc(var(--icon-size, 24px) * 0.6);
 }
 
 /* ==================== */
