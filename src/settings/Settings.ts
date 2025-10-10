@@ -1,7 +1,7 @@
 // Settings Tab Component
 
 import { App, PluginSettingTab, Setting, Notice, Modal } from 'obsidian';
-import { Role, DEFAULT_SETTINGS, ColorPickerComponent, RoleEditModalInterface } from '../types';
+import { Role, DEFAULT_SETTINGS, ColorPickerComponent, RoleEditModalInterface, ApiPermission } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { IconPickerModal } from '../views/Modals';
@@ -803,7 +803,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		donateContainer.createEl('p', {
 			text: 'If you find RoleSwitch helpful, consider supporting its development!',
-			attr: { style: 'margin-bottom: 12px;' }
+			cls: 'donate-text'
 		});
 
 		new Setting(donateContainer)
@@ -829,7 +829,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		donateContainer.createEl('p', {
 			text: 'Thank you for your support! ❤️',
-			attr: { style: 'margin-top: 12px; color: var(--text-muted); font-style: italic;' }
+			cls: 'donate-thank-you'
 		});
 	}
 }

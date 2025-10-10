@@ -7,9 +7,9 @@ import { Utils } from '../utils';
 import { RoleDashboardModal } from './Modals';
 import type RoleSwitchPlugin from '../../main';
 
-// Type for FileSystemAdapter with basePath property
-interface FileSystemAdapter extends DataAdapter {
-	basePath: string;
+// Type guard to check if adapter has basePath property (desktop only)
+function hasBasePath(adapter: DataAdapter): adapter is DataAdapter & { basePath: string } {
+	return 'basePath' in adapter && typeof (adapter as any).basePath === 'string';
 }
 
 export class RoleSwitchView extends ItemView {
@@ -114,12 +114,11 @@ export class RoleSwitchView extends ItemView {
 			}
 		} else {
 			try {
-				// Use plugin resource path
+				// Use plugin resource path with type guard for safe property access
 				const adapter = this.app.vault.adapter;
-				if (adapter && 'basePath' in adapter) {
-					const fsAdapter = adapter as FileSystemAdapter;
+				if (hasBasePath(adapter)) {
 					const configDir = this.app.vault.configDir;
-					const pluginDir = fsAdapter.basePath + '/' + configDir + '/plugins/obsidian-role-switch';
+					const pluginDir = `${adapter.basePath}/${configDir}/plugins/obsidian-role-switch`;
 					const logo = headerIcon.createEl('img', {
 						attr: {
 							src: `app://local/${pluginDir}/image/logo.png`,

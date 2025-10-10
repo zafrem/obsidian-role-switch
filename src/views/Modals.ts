@@ -6,9 +6,9 @@ import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import type RoleSwitchPlugin from '../../main';
 
-// Type for FileSystemAdapter with basePath property
-interface FileSystemAdapter extends DataAdapter {
-	basePath: string;
+// Type guard to check if adapter has basePath property (desktop only)
+function hasBasePath(adapter: DataAdapter): adapter is DataAdapter & { basePath: string } {
+	return 'basePath' in adapter && typeof (adapter as any).basePath === 'string';
 }
 
 export class TransitionModal extends Modal {
@@ -137,7 +137,7 @@ export class RolePickerModal extends Modal {
 		if (this.plugin.data.roles.length === 0) {
 			contentEl.createDiv({
 				text: 'No roles created yet. Create roles in settings first.',
-				attr: { style: 'text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;' }
+				cls: 'modal-no-content'
 			});
 			return;
 		}
@@ -354,13 +354,14 @@ export class RoleDashboardModal extends Modal {
 		const headerContainer = contentEl.createDiv({ cls: 'dashboard-header' });
 
 		// Try to load logo, but don't fail if it doesn't work
+		// Logo loading is desktop-only to avoid FileSystemAdapter issues on mobile
 		if (!Platform.isMobile) {
 			try {
 				const adapter = this.app.vault.adapter;
-				if (adapter && 'basePath' in adapter) {
-					const fsAdapter = adapter as FileSystemAdapter;
+				// Use type guard to safely check if adapter has basePath
+				if (hasBasePath(adapter)) {
 					const configDir = this.app.vault.configDir;
-					const pluginDir = fsAdapter.basePath + '/' + configDir + '/plugins/obsidian-role-switch';
+					const pluginDir = `${adapter.basePath}/${configDir}/plugins/obsidian-role-switch`;
 					const logo = headerContainer.createEl('img', {
 						attr: {
 							src: `app://local/${pluginDir}/image/logo.png`,
@@ -379,7 +380,7 @@ export class RoleDashboardModal extends Modal {
 			}
 		}
 
-		headerContainer.createEl('h2', { text: 'Role Dashboard', attr: { style: 'margin: 0;' } });
+		headerContainer.createEl('h2', { text: 'Role Dashboard', cls: 'dashboard-header-title' });
 
 		// Analytics section
 		this.createAnalyticsSection(contentEl);
@@ -398,7 +399,7 @@ export class RoleDashboardModal extends Modal {
 
 		section.createEl('h3', {
 			text: '📊 Analytics',
-			attr: { style: 'margin: 0 0 12px 0; font-size: 16px;' }
+			cls: 'analytics-section-title'
 		});
 
 		// Get analytics data
@@ -452,15 +453,15 @@ export class RoleDashboardModal extends Modal {
 		});
 		todayCard.createEl('h4', {
 			text: 'Today',
-			attr: { style: 'margin: 0 0 8px 0; font-size: 14px; color: var(--text-accent);' }
+			cls: 'analytics-card-title'
 		});
 		todayCard.createEl('div', {
 			text: `${Math.round(totalTodayMinutes)}min total`,
-			attr: { style: 'font-size: 13px; margin-bottom: 4px;' }
+			cls: 'analytics-stat-text'
 		});
 		todayCard.createEl('div', {
 			text: `${switchCount} switches`,
-			attr: { style: 'font-size: 13px; color: var(--text-muted);' }
+			cls: 'analytics-stat-text-muted'
 		});
 
 		// Averages card
@@ -469,15 +470,15 @@ export class RoleDashboardModal extends Modal {
 		});
 		avgCard.createEl('h4', {
 			text: 'Averages',
-			attr: { style: 'margin: 0 0 8px 0; font-size: 14px; color: var(--text-accent);' }
+			cls: 'analytics-card-title'
 		});
 		avgCard.createEl('div', {
 			text: `${Math.round(avgDailyMinutes)}min/day (week)`,
-			attr: { style: 'font-size: 13px; margin-bottom: 4px;' }
+			cls: 'analytics-stat-text'
 		});
 		avgCard.createEl('div', {
 			text: `${Math.round(avgMonthlyDailyMinutes)}min/day (month)`,
-			attr: { style: 'font-size: 13px; color: var(--text-muted);' }
+			cls: 'analytics-stat-text-muted'
 		});
 
 		// Week and month totals
@@ -486,7 +487,7 @@ export class RoleDashboardModal extends Modal {
 		});
 		totalsCard.createEl('h4', {
 			text: 'Totals',
-			attr: { style: 'margin: 0 0 8px 0; font-size: 14px; color: var(--text-accent);' }
+			cls: 'analytics-card-title'
 		});
 
 		const totalsGrid = totalsCard.createDiv({
@@ -495,11 +496,11 @@ export class RoleDashboardModal extends Modal {
 
 		totalsGrid.createEl('div', {
 			text: `Week: ${Math.round(totalWeekMinutes)}min`,
-			attr: { style: 'font-size: 13px;' }
+			cls: 'analytics-totals-text'
 		});
 		totalsGrid.createEl('div', {
 			text: `Month: ${Math.round(totalMonthMinutes)}min`,
-			attr: { style: 'font-size: 13px;' }
+			cls: 'analytics-totals-text'
 		});
 	}
 
@@ -508,7 +509,7 @@ export class RoleDashboardModal extends Modal {
 			cls: 'current-status-dashboard'
 		});
 
-		statusSection.createEl('h3', { text: 'Current Session', attr: { style: 'margin-top: 0; color: var(--interactive-accent);' } });
+		statusSection.createEl('h3', { text: 'Current Session', cls: 'session-header-title' });
 
 		if (this.plugin.data.state.activeRoleId) {
 			const activeRole = this.plugin.data.roles.find(r => r.id === this.plugin.data.state.activeRoleId);
@@ -573,7 +574,7 @@ export class RoleDashboardModal extends Modal {
 		if (todaySessions.length > 0) {
 			container.createEl('h4', {
 				text: "Today's History",
-				attr: { style: 'margin: 20px 0 10px 0; color: var(--text-accent);' }
+				cls: 'history-section-title'
 			});
 
 			const historyContainer = container.createDiv({
