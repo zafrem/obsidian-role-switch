@@ -4,9 +4,11 @@
 import { ApiKey, ApiPermission } from '../types';
 import { Utils } from '../utils';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class AuthService {
 	private plugin: any;
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(plugin: any) {
 		this.plugin = plugin;
 	}
@@ -158,6 +160,7 @@ export class AuthService {
 		return expectedSignature === signature;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	createAuthenticatedRequest(apiKey: ApiKey, payload: any): {
 		headers: Record<string, string>;
 		body: string;

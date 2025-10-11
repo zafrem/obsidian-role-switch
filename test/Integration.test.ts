@@ -3,6 +3,16 @@
 import { RoleSwitchApi } from '../src/api/ApiInterface';
 import { RoleSwitchHttpServer } from '../src/api/HttpServer';
 import { MockPlugin, TestUtils, TestRunner } from './TestSetup';
+import { ApiKey, ApiPermission, Role, Session, Note } from '../src/types';
+
+// Mock auth interface
+interface MockAuth {
+    authenticateRequest: (headers: Record<string, string>, requiredPermission?: ApiPermission) => {
+        isAuthenticated: boolean;
+        apiKey?: ApiKey;
+        error?: string;
+    };
+}
 
 // Integration test suite
 const runner = new TestRunner();
@@ -13,11 +23,14 @@ let server: RoleSwitchHttpServer;
 runner.beforeEach(() => {
     mockPlugin = new MockPlugin();
     api = new RoleSwitchApi(mockPlugin, 3030);
-    const auth = { authenticateRequest: () => ({ isAuthenticated: true }) } as any;
-    server = new RoleSwitchHttpServer(api, auth);
+    const auth: MockAuth = {
+        authenticateRequest: () => ({ isAuthenticated: true })
+    };
+    server = new RoleSwitchHttpServer(api, auth as any);
 });
 
 // Helper function to simulate HTTP requests
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function makeRequest(method: string, url: string, body?: any) {
     return await server.handleRequest({
         method,
@@ -242,7 +255,7 @@ runner.test('Complete Notes Workflow', async () => {
 
     // 3. Verify notes are associated with session
     response = await makeRequest('GET', '/api/sessions');
-    const updatedSession = response.body.data.find((s: any) => s.id === session.id);
+    const updatedSession = response.body.data.find((s: Session) => s.id === session.id);
     if (!updatedSession || updatedSession.notes.length !== 2) {
         throw new Error('Notes not properly associated with session');
     }
@@ -256,8 +269,8 @@ runner.test('Complete Notes Workflow', async () => {
 
     // 5. Verify note update
     response = await makeRequest('GET', '/api/sessions');
-    const sessionWithUpdatedNote = response.body.data.find((s: any) => s.id === session.id);
-    const updatedNote = sessionWithUpdatedNote.notes.find((n: any) => n.id === note1.id);
+    const sessionWithUpdatedNote = response.body.data.find((s: Session) => s.id === session.id);
+    const updatedNote = sessionWithUpdatedNote.notes.find((n: Note) => n.id === note1.id);
     if (updatedNote.text !== updateData.text) {
         throw new Error('Note update did not persist');
     }
@@ -270,7 +283,7 @@ runner.test('Complete Notes Workflow', async () => {
 
     // 7. Verify note deletion
     response = await makeRequest('GET', '/api/sessions');
-    const sessionAfterDeletion = response.body.data.find((s: any) => s.id === session.id);
+    const sessionAfterDeletion = response.body.data.find((s: Session) => s.id === session.id);
     if (sessionAfterDeletion.notes.length !== 1) {
         throw new Error('Note was not deleted');
     }
@@ -377,8 +390,15 @@ runner.test('Events and Analytics Workflow', async () => {
     }
 
     // Verify role breakdown
-    const devStats = analytics.roleBreakdown.find((r: any) => r.roleId === developer.id);
-    const writerStats = analytics.roleBreakdown.find((r: any) => r.roleId === writer.id);
+    interface RoleBreakdown {
+        roleId: string;
+        roleName: string;
+        sessionCount: number;
+        totalTime: number;
+        percentage: number;
+    }
+    const devStats = analytics.roleBreakdown.find((r: RoleBreakdown) => r.roleId === developer.id);
+    const writerStats = analytics.roleBreakdown.find((r: RoleBreakdown) => r.roleId === writer.id);
 
     if (!devStats || !writerStats) {
         throw new Error('Missing role statistics');
@@ -393,7 +413,7 @@ runner.test('Events and Analytics Workflow', async () => {
     }
 
     // Verify percentages add up to 100
-    const totalPercentage = analytics.roleBreakdown.reduce((sum: number, role: any) => sum + role.percentage, 0);
+    const totalPercentage = analytics.roleBreakdown.reduce((sum: number, role: RoleBreakdown) => sum + role.percentage, 0);
     if (Math.abs(totalPercentage - 100) > 0.1) {
         throw new Error(`Expected percentages to sum to 100, got ${totalPercentage}`);
     }
@@ -496,7 +516,7 @@ runner.test('Data Consistency and State Management', async () => {
     const role = roleResponse.body.data;
 
     let response = await makeRequest('GET', '/api/roles');
-    if (!response.body.data.find((r: any) => r.id === role.id)) {
+    if (!response.body.data.find((r: Role) => r.id === role.id)) {
         throw new Error('Newly created role not immediately available');
     }
 
@@ -525,8 +545,8 @@ runner.test('Data Consistency and State Management', async () => {
     const note = noteResponse.body.data;
 
     response = await makeRequest('GET', '/api/sessions');
-    const session = response.body.data.find((s: any) => s.id === response.body.data.currentSession?.id);
-    if (!session || !session.notes.find((n: any) => n.id === note.id)) {
+    const session = response.body.data.find((s: Session) => s.id === response.body.data.currentSession?.id);
+    if (!session || !session.notes.find((n: Note) => n.id === note.id)) {
         throw new Error('Note not immediately available in session');
     }
 
@@ -539,7 +559,7 @@ runner.test('Data Consistency and State Management', async () => {
     }
 
     response = await makeRequest('GET', '/api/roles');
-    if (response.body.data.find((r: any) => r.id === role.id)) {
+    if (response.body.data.find((r: Role) => r.id === role.id)) {
         throw new Error('Deleted role should not be available');
     }
 });

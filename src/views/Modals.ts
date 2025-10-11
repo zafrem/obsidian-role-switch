@@ -7,9 +7,9 @@ import { Utils } from '../utils';
 import type RoleSwitchPlugin from '../../main';
 
 // Type guard to check if adapter has basePath property (desktop only)
-// Using 'any' to avoid referencing DataAdapter which is desktop-only
-function hasBasePath(adapter: any): adapter is { basePath: string } {
-	return adapter && 'basePath' in adapter && typeof adapter.basePath === 'string';
+// Using 'unknown' to avoid referencing DataAdapter which is desktop-only
+function hasBasePath(adapter: unknown): adapter is { basePath: string } {
+	return typeof adapter === 'object' && adapter !== null && 'basePath' in adapter && typeof (adapter as Record<string, unknown>).basePath === 'string';
 }
 
 export class TransitionModal extends Modal {

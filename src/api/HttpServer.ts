@@ -3,21 +3,23 @@
 
 import { RoleSwitchApi, ApiResponse } from './ApiInterface';
 import { AuthService } from './AuthService';
-import { ApiPermission } from '../types';
+import { ApiPermission, ApiKey } from '../types';
 
 export interface HttpRequest {
 	method: string;
 	url: string;
 	headers: Record<string, string>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	body?: any;
 	params?: Record<string, string>;
 	query?: Record<string, string>;
-	apiKey?: any;
+	apiKey?: ApiKey;
 }
 
 export interface HttpResponse {
 	statusCode: number;
 	headers: Record<string, string>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	body: any;
 }
 

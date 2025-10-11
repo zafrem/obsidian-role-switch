@@ -1,7 +1,7 @@
 // Settings Tab Component
 
 import { App, PluginSettingTab, Setting, Notice, Modal } from 'obsidian';
-import { Role, DEFAULT_SETTINGS, ColorPickerComponent, RoleEditModalInterface, ApiPermission } from '../types';
+import { Role, DEFAULT_SETTINGS, ColorPickerComponent, RoleEditModalInterface, ApiPermission, ApiKey, SyncEndpoint } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { IconPickerModal } from '../views/Modals';
@@ -766,7 +766,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		nameInput!.focus();
 	}
 
-	private async confirmDeleteApiKey(apiKey: any): Promise<boolean> {
+	private async confirmDeleteApiKey(apiKey: ApiKey): Promise<boolean> {
 		return new Promise((resolve) => {
 			const modal = new ConfirmModal(
 				this.app,
@@ -780,7 +780,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		});
 	}
 
-	private async confirmDeleteEndpoint(endpoint: any): Promise<boolean> {
+	private async confirmDeleteEndpoint(endpoint: SyncEndpoint): Promise<boolean> {
 		return new Promise((resolve) => {
 			const modal = new ConfirmModal(
 				this.app,
