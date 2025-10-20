@@ -42,6 +42,59 @@ src/
     └── Modals.ts         # Modal components
 ```
 
+## Debug Logging
+
+This project uses a custom logger utility that automatically strips debug logs from production builds to keep the console clean.
+
+### Usage
+
+Import the logger in your source files:
+
+```typescript
+import { logger } from './logger';
+
+// Available methods:
+logger.log('Debug message', data);
+logger.warn('Warning message');
+logger.error('Error message', error);
+logger.debug('Detailed debug info');
+logger.info('Informational message');
+```
+
+### How It Works
+
+- **Development builds** (`npm run dev`): All logger methods output to the console with a `[RoleSwitch]` prefix
+- **Production builds** (`npm run build`): All logger methods are no-ops (silent), keeping the user's console clean
+
+The build system automatically sets `process.env.NODE_ENV` based on the build mode.
+
+### Example
+
+```typescript
+// src/MyComponent.ts
+import { logger } from './logger';
+
+export class MyComponent {
+    initialize() {
+        logger.log('Component initialized');
+        // Visible in development, silent in production
+    }
+
+    handleError(error: Error) {
+        logger.error('Error occurred:', error);
+        // Also stripped in production
+        // Use Obsidian's Notice for user-facing errors
+    }
+}
+```
+
+### Best Practices
+
+1. **Use the logger for debugging only** - Don't rely on logs for critical functionality
+2. **User-facing messages** - Use Obsidian's `Notice` class for messages users should see
+3. **Prefix patterns** - The logger automatically adds `[RoleSwitch]` prefix
+4. **Error handling** - Log errors but also handle them appropriately
+
 ## Contributing Guidelines
 
 ### Code Style
@@ -49,6 +102,7 @@ src/
 - **Formatting**: Follow existing code style and indentation
 - **Comments**: Add JSDoc comments for public methods
 - **Error Handling**: Proper error handling with user-friendly messages
+- **Logging**: Use the `logger` utility instead of `console.log` for debug output
 
 ### Key Areas for Contribution
 - **Icon Library**: Additional SVG icons and categories

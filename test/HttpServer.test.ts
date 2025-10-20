@@ -2,7 +2,20 @@
 
 import { RoleSwitchHttpServer, HttpRequest } from '../src/api/HttpServer';
 import { RoleSwitchApi } from '../src/api/ApiInterface';
+import { AuthService } from '../src/api/AuthService';
+import { ApiKey, ApiPermission } from '../src/types';
 import { MockPlugin, TestUtils, TestRunner } from './TestSetup';
+
+// Mock auth service for testing - implements only the method needed by HttpServer
+class MockAuthService implements Pick<AuthService, 'authenticateRequest'> {
+    authenticateRequest(_headers: Record<string, string>, _requiredPermission?: ApiPermission): {
+        isAuthenticated: boolean;
+        apiKey?: ApiKey;
+        error?: string;
+    } {
+        return { isAuthenticated: true };
+    }
+}
 
 // Test suite for HTTP Server
 const runner = new TestRunner();
@@ -13,7 +26,7 @@ let server: RoleSwitchHttpServer;
 runner.beforeEach(() => {
     mockPlugin = new MockPlugin();
     api = new RoleSwitchApi(mockPlugin, 3030);
-    const auth = { authenticateRequest: () => ({ isAuthenticated: true }) } as any;
+    const auth = new MockAuthService() as AuthService;
     server = new RoleSwitchHttpServer(api, auth);
 });
 
