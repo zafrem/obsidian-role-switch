@@ -42,6 +42,7 @@ const context = await esbuild.context({
 	define: {
 		'process.env.NODE_ENV': prod ? '"production"' : '"development"',
 	},
+	drop: prod ? ['console', 'debugger'] : [],
 });
 
 if (prod) {
