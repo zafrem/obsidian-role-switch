@@ -1,5 +1,5 @@
 /**
- * Debug logger utility that can be stripped from production builds
+ * Debug logger utility - all logging is disabled for Obsidian compliance
  *
  * Usage:
  *   import { logger } from './logger';
@@ -7,40 +7,19 @@
  *   logger.warn('Warning message');
  *   logger.error('Error message', error);
  *
- * In production builds, all logger calls are replaced with empty functions
- * to avoid polluting the console.
+ * All logger calls are no-op (do nothing) to comply with Obsidian's
+ * requirement to not use console.log statements.
  */
 
-const isDev = process.env.NODE_ENV !== 'production';
+// Create no-op (empty) function
+const noop = (): void => {};
 
+// All logger methods are no-op functions
+// No console statements are used in this file
 export const logger = {
-	log: (...args: unknown[]): void => {
-		if (isDev) {
-			console.log('[RoleSwitch]', ...args);
-		}
-	},
-
-	warn: (...args: unknown[]): void => {
-		if (isDev) {
-			console.warn('[RoleSwitch]', ...args);
-		}
-	},
-
-	error: (...args: unknown[]): void => {
-		if (isDev) {
-			console.error('[RoleSwitch]', ...args);
-		}
-	},
-
-	debug: (...args: unknown[]): void => {
-		if (isDev) {
-			console.debug('[RoleSwitch]', ...args);
-		}
-	},
-
-	info: (...args: unknown[]): void => {
-		if (isDev) {
-			console.info('[RoleSwitch]', ...args);
-		}
-	},
+	log: noop,
+	warn: noop,
+	error: noop,
+	debug: noop,
+	info: noop,
 };
