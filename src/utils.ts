@@ -1,6 +1,6 @@
 // Utility functions for RoleSwitch plugin
 
-import { Session, RoleSwitchEvent } from './types';
+import { Session, RoleSwitchEvent, Note } from './types';
 
 export class Utils {
 	/**
@@ -192,7 +192,7 @@ export class Utils {
 	/**
 	 * Export sessions to CSV format
 	 */
-	static exportToCSV(sessions: Session[], notes: any[] = []): string {
+	static exportToCSV(sessions: Session[], notes: Note[] = []): string {
 		const headers = ['Date', 'Start Time', 'End Time', 'Duration (min)', 'Role ID', 'Session ID', 'Notes'];
 		const rows = [headers];
 		
@@ -225,7 +225,7 @@ export class Utils {
 	/**
 	 * Export sessions to JSON format
 	 */
-	static exportToJSON(sessions: Session[], notes: any[] = []): string {
+	static exportToJSON(sessions: Session[], notes: Note[] = []): string {
 		const data = {
 			exportDate: new Date().toISOString(),
 			sessions: sessions.map(session => ({

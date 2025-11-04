@@ -1,7 +1,7 @@
 // HTTP Server implementation for RoleSwitch API
 // Handles REST API requests and routes them to the appropriate API methods
 
-import { RoleSwitchApi, ApiResponse } from './ApiInterface';
+import { RoleSwitchApi, ApiResponse, CreateRoleRequest, UpdateRoleRequest, AddNoteRequest, UpdateNoteRequest, SyncData } from './ApiInterface';
 import { AuthService } from './AuthService';
 import { ApiPermission, ApiKey } from '../types';
 
@@ -9,8 +9,7 @@ export interface HttpRequest {
 	method: string;
 	url: string;
 	headers: Record<string, string>;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	body?: any;
+	body?: unknown;
 	params?: Record<string, string>;
 	query?: Record<string, string>;
 	apiKey?: ApiKey;
@@ -19,15 +18,14 @@ export interface HttpRequest {
 export interface HttpResponse {
 	statusCode: number;
 	headers: Record<string, string>;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	body: any;
+	body: unknown;
 }
 
 export class RoleSwitchHttpServer {
 	private api: RoleSwitchApi;
 	private auth: AuthService;
 	private routes: Map<string, {
-		handler: (req: HttpRequest) => Promise<HttpResponse>;
+		handler: (req: HttpRequest) => HttpResponse;
 		permission?: ApiPermission;
 	}>;
 
@@ -145,7 +143,7 @@ export class RoleSwitchHttpServer {
 	}
 
 	// Route handler method
-	async handleRequest(req: HttpRequest): Promise<HttpResponse> {
+	handleRequest(req: HttpRequest): HttpResponse {
 		try {
 			// Add CORS headers
 			const corsHeaders = {
@@ -193,7 +191,7 @@ export class RoleSwitchHttpServer {
 			req.params = this.extractPathParams(req.url, routeKey);
 			req.query = this.extractQueryParams(req.url);
 
-			const response = await route.handler(req);
+			const response = route.handler(req);
 			response.headers = { ...corsHeaders, ...response.headers };
 
 			return response;
@@ -209,7 +207,7 @@ export class RoleSwitchHttpServer {
 
 	private extractRoutePath(url: string): string {
 		const path = url.split('?')[0];
-		return path.replace(/\/[^\/]+/g, (match) => {
+		return path.replace(/\/[^/]+/g, (match) => {
 			// Replace ID segments with parameter placeholders
 			if (/^\/[a-f0-9-]{36}$/i.test(match) || /^\/\d+$/.test(match)) {
 				return '/:id';
@@ -259,17 +257,17 @@ export class RoleSwitchHttpServer {
 	// ROUTE HANDLERS
 	// ====================
 
-	private async handleGetStatus(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetStatus(req: HttpRequest): HttpResponse {
 		const result = this.api.getStatus();
 		return this.createResponse(result);
 	}
 
-	private async handleGetRoles(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetRoles(req: HttpRequest): HttpResponse {
 		const result = this.api.getRoles();
 		return this.createResponse(result);
 	}
 
-	private async handleGetRole(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetRole(req: HttpRequest): HttpResponse {
 		const roleId = req.params?.id;
 		if (!roleId) {
 			return this.createResponse({ success: false, error: 'Role ID is required' });
@@ -279,16 +277,16 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleCreateRole(req: HttpRequest): Promise<HttpResponse> {
+	private handleCreateRole(req: HttpRequest): HttpResponse {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
-		const result = this.api.createRole(req.body);
+		const result = this.api.createRole(req.body as CreateRoleRequest);
 		return this.createResponse(result, 201);
 	}
 
-	private async handleUpdateRole(req: HttpRequest): Promise<HttpResponse> {
+	private handleUpdateRole(req: HttpRequest): HttpResponse {
 		const roleId = req.params?.id;
 		if (!roleId) {
 			return this.createResponse({ success: false, error: 'Role ID is required' });
@@ -298,11 +296,11 @@ export class RoleSwitchHttpServer {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
-		const result = this.api.updateRole(roleId, req.body);
+		const result = this.api.updateRole(roleId, req.body as UpdateRoleRequest);
 		return this.createResponse(result);
 	}
 
-	private async handleDeleteRole(req: HttpRequest): Promise<HttpResponse> {
+	private handleDeleteRole(req: HttpRequest): HttpResponse {
 		const roleId = req.params?.id;
 		if (!roleId) {
 			return this.createResponse({ success: false, error: 'Role ID is required' });
@@ -312,8 +310,8 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleStartSession(req: HttpRequest): Promise<HttpResponse> {
-		const { roleId } = req.body || {};
+	private handleStartSession(req: HttpRequest): HttpResponse {
+		const { roleId } = (req.body as { roleId?: string }) || {};
 		if (!roleId) {
 			return this.createResponse({ success: false, error: 'Role ID is required' });
 		}
@@ -322,8 +320,8 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleSwitchSession(req: HttpRequest): Promise<HttpResponse> {
-		const { roleId } = req.body || {};
+	private handleSwitchSession(req: HttpRequest): HttpResponse {
+		const { roleId } = (req.body as { roleId?: string }) || {};
 		if (!roleId) {
 			return this.createResponse({ success: false, error: 'Role ID is required' });
 		}
@@ -332,12 +330,12 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleEndSession(req: HttpRequest): Promise<HttpResponse> {
+	private handleEndSession(req: HttpRequest): HttpResponse {
 		const result = this.api.endSession();
 		return this.createResponse(result);
 	}
 
-	private async handleGetSessions(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetSessions(req: HttpRequest): HttpResponse {
 		const filters = {
 			startDate: req.query?.startDate,
 			endDate: req.query?.endDate,
@@ -348,16 +346,16 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleAddNote(req: HttpRequest): Promise<HttpResponse> {
+	private handleAddNote(req: HttpRequest): HttpResponse {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
-		const result = this.api.addNote(req.body);
+		const result = this.api.addNote(req.body as AddNoteRequest);
 		return this.createResponse(result, 201);
 	}
 
-	private async handleUpdateNote(req: HttpRequest): Promise<HttpResponse> {
+	private handleUpdateNote(req: HttpRequest): HttpResponse {
 		const noteId = req.params?.id;
 		if (!noteId) {
 			return this.createResponse({ success: false, error: 'Note ID is required' });
@@ -367,11 +365,11 @@ export class RoleSwitchHttpServer {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
-		const result = this.api.updateNote(noteId, req.body);
+		const result = this.api.updateNote(noteId, req.body as UpdateNoteRequest);
 		return this.createResponse(result);
 	}
 
-	private async handleDeleteNote(req: HttpRequest): Promise<HttpResponse> {
+	private handleDeleteNote(req: HttpRequest): HttpResponse {
 		const noteId = req.params?.id;
 		if (!noteId) {
 			return this.createResponse({ success: false, error: 'Note ID is required' });
@@ -381,7 +379,7 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleGetEvents(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetEvents(req: HttpRequest): HttpResponse {
 		const typeValue = req.query?.type;
 		const validTypes = ['start', 'end', 'switch', 'cancelTransition'];
 
@@ -398,7 +396,7 @@ export class RoleSwitchHttpServer {
 		return this.createResponse(result);
 	}
 
-	private async handleGetAnalytics(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetAnalytics(req: HttpRequest): HttpResponse {
 		const filters = {
 			startDate: req.query?.startDate,
 			endDate: req.query?.endDate
@@ -412,12 +410,12 @@ export class RoleSwitchHttpServer {
 	// AUTHENTICATION HANDLERS
 	// ====================
 
-	private async handleCreateApiKey(req: HttpRequest): Promise<HttpResponse> {
+	private handleCreateApiKey(req: HttpRequest): HttpResponse {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
-		const { name, permissions } = req.body;
+		const { name, permissions } = req.body as { name?: string; permissions?: ApiPermission[] };
 		if (!name || !permissions) {
 			return this.createResponse({ success: false, error: 'Name and permissions are required' });
 		}
@@ -430,7 +428,7 @@ export class RoleSwitchHttpServer {
 		}
 	}
 
-	private async handleGetApiKeys(req: HttpRequest): Promise<HttpResponse> {
+	private handleGetApiKeys(req: HttpRequest): HttpResponse {
 		try {
 			const apiKeys = this.auth.getApiKeys();
 			return this.createResponse({ success: true, data: apiKeys });
@@ -439,7 +437,7 @@ export class RoleSwitchHttpServer {
 		}
 	}
 
-	private async handleUpdateApiKey(req: HttpRequest): Promise<HttpResponse> {
+	private handleUpdateApiKey(req: HttpRequest): HttpResponse {
 		const keyId = req.params?.id;
 		if (!keyId) {
 			return this.createResponse({ success: false, error: 'API key ID is required' });
@@ -450,14 +448,14 @@ export class RoleSwitchHttpServer {
 		}
 
 		try {
-			this.auth.updateApiKey(keyId, req.body);
+			this.auth.updateApiKey(keyId, req.body as Partial<Omit<ApiKey, 'id' | 'key' | 'secret' | 'createdAt'>>);
 			return this.createResponse({ success: true, message: 'API key updated successfully' });
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Failed to update API key: ${error}` });
 		}
 	}
 
-	private async handleDeleteApiKey(req: HttpRequest): Promise<HttpResponse> {
+	private handleDeleteApiKey(req: HttpRequest): HttpResponse {
 		const keyId = req.params?.id;
 		if (!keyId) {
 			return this.createResponse({ success: false, error: 'API key ID is required' });
@@ -475,20 +473,20 @@ export class RoleSwitchHttpServer {
 	// SYNC HANDLERS
 	// ====================
 
-	private async handleSyncPush(req: HttpRequest): Promise<HttpResponse> {
+	private handleSyncPush(req: HttpRequest): HttpResponse {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
 		try {
-			const result = await this.api.handleSyncPush(req.body);
+			const result = this.api.handleSyncPush(req.body as SyncData);
 			return this.createResponse(result);
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Sync push failed: ${error}` });
 		}
 	}
 
-	private async handleSyncPull(req: HttpRequest): Promise<HttpResponse> {
+	private handleSyncPull(req: HttpRequest): HttpResponse {
 		try {
 			const filters = {
 				since: req.query?.since,
@@ -501,13 +499,13 @@ export class RoleSwitchHttpServer {
 		}
 	}
 
-	private async handleSyncBidirectional(req: HttpRequest): Promise<HttpResponse> {
+	private handleSyncBidirectional(req: HttpRequest): HttpResponse {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
 		try {
-			const result = await this.api.handleSyncBidirectional(req.body);
+			const result = this.api.handleSyncBidirectional(req.body as SyncData);
 			return this.createResponse(result);
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Bidirectional sync failed: ${error}` });

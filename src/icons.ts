@@ -1,7 +1,5 @@
 // Icon Library - Contains all SVG icons and rendering utilities
 
-import { Platform } from 'obsidian';
-
 export class IconLibrary {
 	static readonly ICONS: { [key: string]: string } = {
 		'A': `<svg viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="bold" font-family="Arial, sans-serif">A</text></svg>`,
@@ -73,7 +71,7 @@ export class IconLibrary {
 					container.textContent = iconKey.charAt(0).toUpperCase();
 					container.addClass('icon-fallback-text');
 				}
-			} catch (error) {
+			} catch {
 				container.textContent = iconKey.charAt(0).toUpperCase();
 				container.addClass('icon-fallback-text');
 			}

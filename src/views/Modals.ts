@@ -132,7 +132,7 @@ export class RolePickerModal extends Modal {
 			contentEl.addClass('role-picker-modal');
 		}
 
-		const title = this.mode === 'start' ? 'Start Role' : 'Switch Role';
+		const title = this.mode === 'start' ? 'Start role' : 'Switch role';
 		contentEl.createEl('h2', { text: title });
 
 		if (this.plugin.data.roles.length === 0) {
@@ -258,7 +258,7 @@ export class NoteEditModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		const title = this.note ? 'Edit Note' : 'Add Note';
+		const title = this.note ? 'Edit note' : 'Add note';
 		contentEl.createEl('h2', { text: title });
 
 		this.textArea = contentEl.createEl('textarea', {
@@ -307,7 +307,7 @@ export class NoteEditModal extends Modal {
 				new Notice('Note added');
 			}
 			this.close();
-		} catch (error) {
+		} catch {
 			new Notice('Failed to save note');
 		}
 	}
@@ -319,7 +319,7 @@ export class NoteEditModal extends Modal {
 			this.plugin.deleteNote(this.note.id);
 			new Notice('Note deleted');
 			this.close();
-		} catch (error) {
+		} catch {
 			new Notice('Failed to delete note');
 		}
 	}
@@ -366,7 +366,7 @@ export class RoleDashboardModal extends Modal {
 					const logo = headerContainer.createEl('img', {
 						attr: {
 							src: `app://local/${pluginDir}/image/logo.png`,
-							alt: 'RoleSwitch Logo'
+							alt: 'Role-switch logo'
 						},
 						cls: 'dashboard-logo size-32'
 					});
@@ -376,12 +376,12 @@ export class RoleDashboardModal extends Modal {
 						logo.remove();
 					});
 				}
-			} catch (error) {
+			} catch {
 				// Logo loading failed, continue without logo
 			}
 		}
 
-		headerContainer.createEl('h2', { text: 'Role Dashboard', cls: 'dashboard-header-title' });
+		headerContainer.createEl('h2', { text: 'Role dashboard', cls: 'dashboard-header-title' });
 
 		// Analytics section
 		this.createAnalyticsSection(contentEl);
@@ -399,7 +399,7 @@ export class RoleDashboardModal extends Modal {
 		});
 
 		section.createEl('h3', {
-			text: '📊 Analytics',
+			text: 'Analytics 📊',
 			cls: 'analytics-section-title'
 		});
 
@@ -510,7 +510,7 @@ export class RoleDashboardModal extends Modal {
 			cls: 'current-status-dashboard'
 		});
 
-		statusSection.createEl('h3', { text: 'Current Session', cls: 'session-header-title' });
+		statusSection.createEl('h3', { text: 'Current session', cls: 'session-header-title' });
 
 		if (this.plugin.data.state.activeRoleId) {
 			const activeRole = this.plugin.data.roles.find(r => r.id === this.plugin.data.state.activeRoleId);
@@ -574,7 +574,7 @@ export class RoleDashboardModal extends Modal {
 
 		if (todaySessions.length > 0) {
 			container.createEl('h4', {
-				text: "Today's History",
+				text: "Today's history",
 				cls: 'history-section-title'
 			});
 
@@ -691,7 +691,7 @@ export class IconPickerModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl('h2', { text: 'Select Icon' });
+		contentEl.createEl('h2', { text: 'Select icon' });
 
 		// Container for all icons with better structure
 		const iconsContainer = contentEl.createDiv({
@@ -762,7 +762,7 @@ export class IconPickerModal extends Modal {
 		try {
 			const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
 			iconEl.appendChild(iconElement);
-		} catch (error) {
+		} catch {
 			// Fallback text if icon creation fails
 			iconEl.textContent = iconKey.charAt(0).toUpperCase();
 		}
@@ -808,7 +808,7 @@ export class IconPickerModal extends Modal {
 					try {
 						const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
 						iconEl.appendChild(iconElement);
-					} catch (error) {
+					} catch {
 						iconEl.textContent = iconKey.charAt(0).toUpperCase();
 					}
 				}

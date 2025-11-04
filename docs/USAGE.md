@@ -18,7 +18,7 @@ The main interface for RoleSwitch, accessible via the ribbon clock icon:
   - Active session display with real-time duration
   - Role indicator with color and icon
   - Lock status with countdown timer
-- **Today's History**:
+- **Today's history**:
   - Last 3 sessions with timestamps and durations
   - "Show more" indicator for additional sessions
 
@@ -58,7 +58,7 @@ For starting new sessions or switching roles:
 4. **Status Update**: UI updates to show no active session
 
 ### Daily Productivity Review
-1. **Check History**: Review "Today's History" in side panel
+1. **Check History**: Review "Today's history" in side panel
 2. **Analyze Patterns**: Look for frequent switches or long focus periods
 3. **Export Data**: Use settings to export detailed analytics
 4. **Adjust Strategy**: Modify roles, timing, or workflow based on insights

@@ -19,7 +19,9 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h1', { text: 'RoleSwitch Settings' });
+		new Setting(containerEl)
+			.setName('Role-switch settings')
+			.setHeading();
 
 		// Role Management Section (Top Priority)
 		this.createRoleManagementSection(containerEl);
@@ -38,14 +40,16 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createRoleManagementSection(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: 'Role Management' });
+		new Setting(containerEl)
+			.setName('Role management')
+			.setHeading();
 
 		// Add role button
 		new Setting(containerEl)
 			.setName('Add new role')
 			.setDesc('Create a new role for task switching')
 			.addButton(button => {
-				button.setButtonText('Add Role')
+				button.setButtonText('Add role')
 					.setCta()
 					.onClick(() => {
 						this.showRoleEditModal();
@@ -111,7 +115,9 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createSessionSettingsSection(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: 'Session Settings' });
+		new Setting(containerEl)
+			.setName('Session settings')
+			.setHeading();
 
 		// Transition duration with buttons and input
 		const transitionSetting = new Setting(containerEl)
@@ -127,10 +133,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 				text: `${preset}s`,
 				cls: 'setting-preset-button'
 			});
-			btn.addEventListener('click', async () => {
-				this.plugin.data.settings.transitionSeconds = preset;
-				await this.plugin.savePluginData();
-				transitionInput.value = preset.toString();
+			btn.addEventListener('click', () => {
+				void (async () => {
+					this.plugin.data.settings.transitionSeconds = preset;
+					await this.plugin.savePluginData();
+					transitionInput.value = preset.toString();
+				})();
 			});
 		});
 
@@ -141,14 +149,16 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			attr: { min: '5', max: '120', step: '5' }
 		});
 		transitionInput.value = this.plugin.data.settings.transitionSeconds.toString();
-		transitionInput.addEventListener('change', async () => {
-			const value = parseInt(transitionInput.value);
-			if (value >= 5 && value <= 120) {
-				this.plugin.data.settings.transitionSeconds = value;
-				await this.plugin.savePluginData();
-			} else {
-				transitionInput.value = this.plugin.data.settings.transitionSeconds.toString();
-			}
+		transitionInput.addEventListener('change', () => {
+			void (async () => {
+				const value = parseInt(transitionInput.value);
+				if (value >= 5 && value <= 120) {
+					this.plugin.data.settings.transitionSeconds = value;
+					await this.plugin.savePluginData();
+				} else {
+					transitionInput.value = this.plugin.data.settings.transitionSeconds.toString();
+				}
+			})();
 		});
 
 		// Unit label
@@ -168,10 +178,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 				text: `${preset}m`,
 				cls: 'setting-preset-button'
 			});
-			btn.addEventListener('click', async () => {
-				this.plugin.data.settings.minSessionSeconds = preset * 60;
-				await this.plugin.savePluginData();
-				sessionInput.value = preset.toString();
+			btn.addEventListener('click', () => {
+				void (async () => {
+					this.plugin.data.settings.minSessionSeconds = preset * 60;
+					await this.plugin.savePluginData();
+					sessionInput.value = preset.toString();
+				})();
 			});
 		});
 
@@ -182,14 +194,16 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			attr: { min: '5', max: '60', step: '5' }
 		});
 		sessionInput.value = (this.plugin.data.settings.minSessionSeconds / 60).toString();
-		sessionInput.addEventListener('change', async () => {
-			const value = parseInt(sessionInput.value);
-			if (value >= 5 && value <= 60) {
-				this.plugin.data.settings.minSessionSeconds = value * 60;
-				await this.plugin.savePluginData();
-			} else {
-				sessionInput.value = (this.plugin.data.settings.minSessionSeconds / 60).toString();
-			}
+		sessionInput.addEventListener('change', () => {
+			void (async () => {
+				const value = parseInt(sessionInput.value);
+				if (value >= 5 && value <= 60) {
+					this.plugin.data.settings.minSessionSeconds = value * 60;
+					await this.plugin.savePluginData();
+				} else {
+					sessionInput.value = (this.plugin.data.settings.minSessionSeconds / 60).toString();
+				}
+			})();
 		});
 
 		// Unit label
@@ -197,7 +211,9 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createDisplaySettingsSection(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: 'Display Settings' });
+		new Setting(containerEl)
+			.setName('Display settings')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('Show status bar')
@@ -237,11 +253,13 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 				text: `${preset}`,
 				cls: 'setting-preset-button'
 			});
-			btn.addEventListener('click', async () => {
-				this.plugin.data.settings.borderOpacity = preset;
-				await this.plugin.savePluginData();
-				this.plugin.updateWorkspaceBorder();
-				opacityInput.value = preset.toString();
+			btn.addEventListener('click', () => {
+				void (async () => {
+					this.plugin.data.settings.borderOpacity = preset;
+					await this.plugin.savePluginData();
+					this.plugin.updateWorkspaceBorder();
+					opacityInput.value = preset.toString();
+				})();
 			});
 		});
 
@@ -252,15 +270,17 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			attr: { min: '0.1', max: '1.0', step: '0.1' }
 		});
 		opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
-		opacityInput.addEventListener('change', async () => {
-			const value = parseFloat(opacityInput.value);
-			if (value >= 0.1 && value <= 1.0) {
-				this.plugin.data.settings.borderOpacity = value;
-				await this.plugin.savePluginData();
-				this.plugin.updateWorkspaceBorder();
-			} else {
-				opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
-			}
+		opacityInput.addEventListener('change', () => {
+			void (async () => {
+				const value = parseFloat(opacityInput.value);
+				if (value >= 0.1 && value <= 1.0) {
+					this.plugin.data.settings.borderOpacity = value;
+					await this.plugin.savePluginData();
+					this.plugin.updateWorkspaceBorder();
+				} else {
+					opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
+				}
+			})();
 		});
 
 		// Unit label
@@ -292,11 +312,13 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 				text: `${preset}m`,
 				cls: 'setting-preset-button'
 			});
-			btn.addEventListener('click', async () => {
-				this.plugin.data.settings.reminderIntervalMinutes = preset;
-				await this.plugin.savePluginData();
-				this.plugin.updateReminderInterval();
-				reminderInput.value = preset.toString();
+			btn.addEventListener('click', () => {
+				void (async () => {
+					this.plugin.data.settings.reminderIntervalMinutes = preset;
+					await this.plugin.savePluginData();
+					this.plugin.updateReminderInterval();
+					reminderInput.value = preset.toString();
+				})();
 			});
 		});
 
@@ -307,15 +329,17 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			attr: { min: '1', max: '60', step: '1' }
 		});
 		reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
-		reminderInput.addEventListener('change', async () => {
-			const value = parseInt(reminderInput.value);
-			if (value >= 1 && value <= 60) {
-				this.plugin.data.settings.reminderIntervalMinutes = value;
-				await this.plugin.savePluginData();
-				this.plugin.updateReminderInterval();
-			} else {
-				reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
-			}
+		reminderInput.addEventListener('change', () => {
+			void (async () => {
+				const value = parseInt(reminderInput.value);
+				if (value >= 1 && value <= 60) {
+					this.plugin.data.settings.reminderIntervalMinutes = value;
+					await this.plugin.savePluginData();
+					this.plugin.updateReminderInterval();
+				} else {
+					reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
+				}
+			})();
 		});
 
 		// Unit label
@@ -326,7 +350,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			.setName('Reset settings')
 			.setDesc('Reset all settings to default values')
 			.addButton(button => {
-				button.setButtonText('Reset to Defaults')
+				button.setButtonText('Reset to defaults')
 					.setWarning()
 					.onClick(async () => {
 						if (await this.confirmReset()) {
@@ -340,11 +364,13 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createApiAndSyncSettingsSection(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: 'API & Synchronization Settings' });
+		new Setting(containerEl)
+			.setName('API & synchronization settings')
+			.setHeading();
 
 		// Enable Sync toggle (enables API automatically)
 		new Setting(containerEl)
-			.setName('Enable Synchronization')
+			.setName('Enable synchronization')
 			.setDesc('Enable API server and sync functionality for external integrations and device synchronization')
 			.addToggle(toggle => {
 				toggle.setValue(this.plugin.data.settings.enableSync)
@@ -368,7 +394,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		if (this.plugin.data.settings.enableSync) {
 			// Device Name
 			new Setting(containerEl)
-				.setName('Device Name')
+				.setName('Device name')
 				.setDesc('Name to identify this device in sync operations')
 				.addText(text => {
 					text.setValue(this.plugin.data.settings.deviceName)
@@ -389,7 +415,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 			// API Port
 			new Setting(containerEl)
-				.setName('API Port')
+				.setName('API port')
 				.setDesc('Port number for the API server')
 				.addText(text => {
 					text.setValue(this.plugin.data.settings.apiPort.toString())
@@ -404,7 +430,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 			// Enable Authentication
 			new Setting(containerEl)
-				.setName('Enable Authentication')
+				.setName('Enable authentication')
 				.setDesc('Require API keys for API access (recommended)')
 				.addToggle(toggle => {
 					toggle.setValue(this.plugin.data.settings.enableAuthentication)
@@ -422,7 +448,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 			// Sync Interval
 			new Setting(containerEl)
-				.setName('Sync Interval')
+				.setName('Sync interval')
 				.setDesc('How often to sync in minutes')
 				.addSlider(slider => {
 					slider.setLimits(1, 60, 1)
@@ -443,13 +469,15 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createApiKeyManagement(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: 'API Key Management' });
+		new Setting(containerEl)
+			.setName('API key management')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Generate API Key')
+			.setName('Generate API key')
 			.setDesc('Create a new API key for external applications')
 			.addButton(button => {
-				button.setButtonText('Generate Key')
+				button.setButtonText('Generate key')
 					.setCta()
 					.onClick(() => {
 						this.showApiKeyModal();
@@ -459,7 +487,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// List existing API keys
 		const apiKeys = this.plugin.data.apiKeys;
 		if (apiKeys.length === 0) {
-			const noKeysEl = containerEl.createDiv({
+			containerEl.createDiv({
 				text: 'No API keys created yet.',
 				cls: 'setting-item-description'
 			});
@@ -485,7 +513,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 					})
 					.addToggle(toggle => {
 						toggle.setValue(apiKey.isActive)
-							.onChange(async (value) => {
+							.onChange((value) => {
 								this.plugin.auth.updateApiKey(apiKey.id, { isActive: value });
 								new Notice(`API key ${value ? 'enabled' : 'disabled'}`);
 							});
@@ -496,13 +524,15 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 
 	private createSyncEndpointManagement(containerEl: HTMLElement): void {
-		containerEl.createEl('h3', { text: 'Sync Endpoints' });
+		new Setting(containerEl)
+			.setName('Sync endpoints')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Add Sync Endpoint')
-			.setDesc('Connect to another RoleSwitch instance')
+			.setName('Add sync endpoint')
+			.setDesc('Connect to another role-switch instance')
 			.addButton(button => {
-				button.setButtonText('Add Endpoint')
+				button.setButtonText('Add endpoint')
 					.setCta()
 					.onClick(() => {
 						this.showSyncEndpointModal();
@@ -531,7 +561,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 							});
 					})
 					.addButton(button => {
-						button.setButtonText('Sync Now')
+						button.setButtonText('Sync now')
 							.onClick(async () => {
 								const result = await this.plugin.sync.manualSyncEndpoint(endpoint.id);
 								new Notice(result.message);
@@ -554,7 +584,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 					})
 					.addToggle(toggle => {
 						toggle.setValue(endpoint.isActive)
-							.onChange(async (value) => {
+							.onChange((value) => {
 								this.plugin.sync.updateSyncEndpoint(endpoint.id, { isActive: value });
 								new Notice(`Endpoint ${value ? 'enabled' : 'disabled'}`);
 							});
@@ -580,7 +610,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		return new Promise((resolve) => {
 			const modal = new ConfirmModal(
 				this.app,
-				'Delete Role',
+				'Delete role',
 				`Are you sure you want to delete the role "${role.name}"? This action cannot be undone.`,
 				'Delete',
 				true
@@ -594,7 +624,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		return new Promise((resolve) => {
 			const modal = new ConfirmModal(
 				this.app,
-				'Reset Settings',
+				'Reset settings',
 				'Are you sure you want to reset all settings to defaults? This action cannot be undone.',
 				'Reset',
 				true
@@ -607,7 +637,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	private showApiKeyModal(): void {
 		// Create a simple modal for API key creation
 		const modal = new Modal(this.app);
-		modal.titleEl.setText('Create API Key');
+		modal.titleEl.setText('Create api key');
 
 		const { contentEl } = modal;
 
@@ -616,11 +646,11 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// Key name
 		const nameSetting = new Setting(contentEl)
-			.setName('Key Name')
+			.setName('Key name')
 			.setDesc('Descriptive name for this API key')
 			.addText(text => {
 				nameInput = text.inputEl;
-				text.setPlaceholder('My App Key');
+				text.setPlaceholder('My app key');
 				return text;
 			});
 
@@ -632,9 +662,9 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			.setName('Permissions')
 			.setDesc('Select what this key can do')
 			.addDropdown(dropdown => {
-				dropdown.addOption('read', 'Read Only - View data only')
-					.addOption('write', 'Read/Write - Modify sessions and roles')
-					.addOption('admin', 'Admin - Full access including key management')
+				dropdown.addOption('read', 'Read only - view data only')
+					.addOption('write', 'Read/write - modify sessions and roles')
+					.addOption('admin', 'Admin - full access including key management')
 					.setValue('read')
 					.onChange(value => {
 						const validPermissions: ApiPermission[] = ['read', 'write', 'admin'];
@@ -647,7 +677,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// Buttons
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 
-		const createBtn = buttonContainer.createEl('button', { text: 'Create Key', cls: 'mod-cta' });
+		const createBtn = buttonContainer.createEl('button', { text: 'Create key', cls: 'mod-cta' });
 		createBtn.addEventListener('click', () => {
 			const name = nameInput!.value.trim();
 			if (!name) {
@@ -660,7 +690,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 				new Notice(`API key created: ${apiKey.key}\nSecret: ${apiKey.secret}`, 10000);
 				modal.close();
 				this.display(); // Refresh settings
-			} catch (error) {
+			} catch {
 				new Notice('Failed to create API key');
 			}
 		});
@@ -674,7 +704,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 	private showSyncEndpointModal(): void {
 		const modal = new Modal(this.app);
-		modal.titleEl.setText('Add Sync Endpoint');
+		modal.titleEl.setText('Add sync endpoint');
 
 		const { contentEl } = modal;
 
@@ -685,11 +715,11 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// Endpoint name
 		const nameSetting = new Setting(contentEl)
-			.setName('Endpoint Name')
+			.setName('Endpoint name')
 			.setDesc('Name for this sync endpoint')
 			.addText(text => {
 				nameInput = text.inputEl;
-				text.setPlaceholder('Home Computer');
+				text.setPlaceholder('Home computer');
 				return text;
 			});
 
@@ -699,20 +729,20 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// URL
 		new Setting(contentEl)
 			.setName('Endpoint URL')
-			.setDesc('Full URL to the other RoleSwitch API')
+			.setDesc('Full url to the other role-switch api')
 			.addText(text => {
 				urlInput = text.inputEl;
-				text.setPlaceholder('http://localhost:3030');
+				text.setPlaceholder('Http://localhost:3030');
 			});
 
 		// API Key selection
 		new Setting(contentEl)
-			.setName('API Key')
-			.setDesc('Select API key to use for authentication')
+			.setName('Api key')
+			.setDesc('Select api key to use for authentication')
 			.addDropdown(dropdown => {
 				const apiKeys = this.plugin.data.apiKeys.filter(key => key.isActive);
 				if (apiKeys.length === 0) {
-					dropdown.addOption('', 'No active API keys available');
+					dropdown.addOption('', 'No active api keys available');
 				} else {
 					apiKeys.forEach(key => {
 						dropdown.addOption(key.id, key.name);
@@ -723,12 +753,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// Sync direction
 		new Setting(contentEl)
-			.setName('Sync Direction')
+			.setName('Sync direction')
 			.setDesc('How data should be synchronized')
 			.addDropdown(dropdown => {
-				dropdown.addOption('push', 'Push Only - Send data to endpoint')
-					.addOption('pull', 'Pull Only - Receive data from endpoint')
-					.addOption('bidirectional', 'Bidirectional - Both send and receive')
+				dropdown.addOption('push', 'Push only - send data to endpoint')
+					.addOption('pull', 'Pull only - receive data from endpoint')
+					.addOption('bidirectional', 'Bidirectional - both send and receive')
 					.setValue('bidirectional')
 					.onChange(value => {
 						syncDirection = value as 'push' | 'pull' | 'bidirectional';
@@ -738,7 +768,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// Buttons
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 
-		const createBtn = buttonContainer.createEl('button', { text: 'Add Endpoint', cls: 'mod-cta' });
+		const createBtn = buttonContainer.createEl('button', { text: 'Add endpoint', cls: 'mod-cta' });
 		createBtn.addEventListener('click', () => {
 			const name = nameInput!.value.trim();
 			const url = urlInput!.value.trim();
@@ -754,7 +784,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 				new Notice('Sync endpoint added');
 				modal.close();
 				this.display(); // Refresh settings
-			} catch (error) {
+			} catch {
 				new Notice('Failed to add sync endpoint');
 			}
 		});
@@ -770,7 +800,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		return new Promise((resolve) => {
 			const modal = new ConfirmModal(
 				this.app,
-				'Delete API Key',
+				'Delete API key',
 				`Are you sure you want to delete the API key "${apiKey.name}"? This action cannot be undone and any applications using this key will lose access.`,
 				'Delete',
 				true
@@ -784,7 +814,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		return new Promise((resolve) => {
 			const modal = new ConfirmModal(
 				this.app,
-				'Delete Sync Endpoint',
+				'Delete sync endpoint',
 				`Are you sure you want to delete the sync endpoint "${endpoint.name}"?`,
 				'Delete',
 				true
@@ -795,33 +825,35 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createDonateSection(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '💝 Support Development' });
+		new Setting(containerEl)
+			.setName('💝 Support development')
+			.setHeading();
 
 		const donateContainer = containerEl.createDiv({
 			cls: 'donate-section'
 		});
 
 		donateContainer.createEl('p', {
-			text: 'If you find RoleSwitch helpful, consider supporting its development!',
+			text: 'If you find role-switch helpful, consider supporting its development!',
 			cls: 'donate-text'
 		});
 
 		new Setting(donateContainer)
-			.setName('Buy Me a Coffee')
+			.setName('Buy me a coffee')
 			.setDesc('Support development with a one-time donation')
 			.addButton(button => {
-				button.setButtonText('☕ Donate')
+				button.setButtonText('Donate')
 					.setCta()
 					.onClick(() => {
-						window.open('https://www.buymeacoffee.com/yourusername', '_blank');
+						window.open('Https://www.buymeacoffee.com/yourusername', '_blank');
 					});
 			});
 
 		new Setting(donateContainer)
-			.setName('GitHub Sponsors')
+			.setName('Github sponsors')
 			.setDesc('Become a sponsor and support ongoing development')
 			.addButton(button => {
-				button.setButtonText('💖 Sponsor')
+				button.setButtonText('Sponsor 💖')
 					.onClick(() => {
 						window.open('https://github.com/sponsors/yourusername', '_blank');
 					});
@@ -854,8 +886,10 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		const title = this.role ? 'Edit Role' : 'Create New Role';
-		contentEl.createEl('h2', { text: title });
+		const title = this.role ? 'Edit role' : 'Create new role';
+		new Setting(contentEl)
+			.setName(title)
+			.setHeading();
 
 		// Name input
 		new Setting(contentEl)
@@ -864,7 +898,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			.addText(text => {
 				this.nameInput = text.inputEl;
 				text.setValue(this.role?.name || '')
-					.setPlaceholder('e.g., Deep Work, Meetings, Learning');
+					.setPlaceholder('e.g., deep work, meetings, learning');
 			});
 
 		// Description input
@@ -939,7 +973,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			.setName('Icon')
 			.setDesc('Optional icon for this role')
 			.addButton(button => {
-				button.setButtonText('Choose Icon')
+				button.setButtonText('Choose icon')
 					.onClick(() => {
 						new IconPickerModal(this.app, (iconKey) => {
 							this.selectedIcon = iconKey;
@@ -957,7 +991,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			const iconElement = IconLibrary.createIconElement(this.selectedIcon, 16);
 			buttonEl.appendChild(iconElement);
 		} else {
-			buttonEl.textContent = 'Choose Icon';
+			buttonEl.textContent = 'Choose icon';
 		}
 	}
 
@@ -1010,11 +1044,11 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 				new Notice('Role updated');
 			} else {
 				// Create new role
-				const newRole = this.plugin.createRole(name, color, description || undefined, this.selectedIcon || undefined);
+				this.plugin.createRole(name, color, description || undefined, this.selectedIcon || undefined);
 				new Notice('Role created');
 			}
 			this.close();
-		} catch (error) {
+		} catch {
 			new Notice('Failed to save role');
 		}
 	}
@@ -1044,7 +1078,9 @@ class ConfirmModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl('h2', { text: this.title });
+		new Setting(contentEl)
+			.setName(this.title)
+			.setHeading();
 		contentEl.createEl('p', { text: this.message });
 
 		const buttonContainer = contentEl.createDiv({

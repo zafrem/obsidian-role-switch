@@ -3,13 +3,12 @@
 
 import { ApiKey, ApiPermission } from '../types';
 import { Utils } from '../utils';
+import type RoleSwitchPlugin from '../../main';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class AuthService {
-	private plugin: any;
+	private plugin: RoleSwitchPlugin;
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	constructor(plugin: any) {
+	constructor(plugin: RoleSwitchPlugin) {
 		this.plugin = plugin;
 	}
 
@@ -160,8 +159,7 @@ export class AuthService {
 		return expectedSignature === signature;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	createAuthenticatedRequest(apiKey: ApiKey, payload: any): {
+	createAuthenticatedRequest(apiKey: ApiKey, payload: unknown): {
 		headers: Record<string, string>;
 		body: string;
 	} {

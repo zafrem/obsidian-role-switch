@@ -31,7 +31,7 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	getDisplayText() {
-		return "RoleSwitch";
+		return "Role-switch";
 	}
 
 	getIcon() {
@@ -53,13 +53,10 @@ export class RoleSwitchView extends ItemView {
 		container.empty();
 		container.addClass('role-switch-view');
 
-		// Add custom styles for side panel
-		this.addSidePanelStyles();
-
 		// Create side panel dashboard
 		try {
 			this.createSidePanelDashboard(container);
-		} catch (error) {
+		} catch {
 			// Fallback: create a simple test display
 			this.createFallbackDashboard(container);
 		}
@@ -68,41 +65,6 @@ export class RoleSwitchView extends ItemView {
 	async onClose() {
 		// Cleanup timer when view closes
 		this.stopRealtimeTimer();
-	}
-
-	private addSidePanelStyles(): void {
-		// Check if styles already added
-		if (document.getElementById('role-switch-side-panel-styles')) {
-			return;
-		}
-
-		// Add custom CSS for side panel styling
-		const style = document.createElement('style');
-		style.id = 'role-switch-side-panel-styles';
-		style.textContent = `
-			.role-switch-view {
-				padding: 16px;
-				height: 100%;
-				overflow-y: auto;
-			}
-			
-			.role-switch-view .side-panel-header {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				margin-bottom: 16px;
-			}
-			
-			.role-switch-view .header-icon {
-				width: 20px;
-				height: 20px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				color: var(--interactive-accent);
-			}
-		`;
-		document.head.appendChild(style);
 	}
 
 	private createSidePanelDashboard(container: HTMLElement): void {
@@ -128,7 +90,7 @@ export class RoleSwitchView extends ItemView {
 					const logo = headerIcon.createEl('img', {
 						attr: {
 							src: `app://local/${pluginDir}/image/logo.png`,
-							alt: 'RoleSwitch Logo'
+							alt: 'Role-switch logo'
 						},
 						cls: 'header-logo size-24'
 					});
@@ -142,7 +104,7 @@ export class RoleSwitchView extends ItemView {
 						}
 					});
 				}
-			} catch (error) {
+			} catch {
 				// Fallback to icon
 				const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
 				if (iconElement.firstChild instanceof Node) {
@@ -151,36 +113,36 @@ export class RoleSwitchView extends ItemView {
 			}
 		}
 
-		const headerTitle = header.createEl('h2', {
-			text: 'RoleSwitch',
+		header.createEl('h2', {
+			text: 'Role-switch',
 			cls: 'header-title'
 		});
 
 		// Roles section (moved to top)
 		try {
 			this.createCompactRolesSection(container);
-		} catch (error) {
+		} catch {
 			// Failed to create roles section
 		}
 
 		// Quick actions section
 		try {
 			this.createQuickActionsSection(container);
-		} catch (error) {
+		} catch {
 			// Failed to create quick actions section
 		}
 
 		// Current status section
 		try {
 			this.createCompactStatusSection(container);
-		} catch (error) {
+		} catch {
 			// Failed to create status section
 		}
 	}
 
 	private createCompactStatusSection(container: HTMLElement): void {
 		const statusSection = container.createDiv({ cls: 'side-panel-section' });
-		statusSection.createEl('h3', { text: 'Current History' });
+		statusSection.createEl('h3', { text: 'Current history' });
 
 		const statusCard = statusSection.createDiv({ cls: 'current-status-compact' });
 
@@ -278,7 +240,7 @@ export class RoleSwitchView extends ItemView {
 			// History header
 			const historyHeader = container.createDiv({ cls: 'history-divider' });
 			historyHeader.createEl('div', {
-				text: "Today's History",
+				text: "Today's history",
 				cls: 'history-header'
 			});
 
@@ -324,7 +286,7 @@ export class RoleSwitchView extends ItemView {
 
 	private createQuickActionsSection(container: HTMLElement): void {
 		const actionsSection = container.createDiv({ cls: 'side-panel-section' });
-		actionsSection.createEl('h3', { text: 'Quick Actions' });
+		actionsSection.createEl('h3', { text: 'Quick actions' });
 
 		const actionsContainer = actionsSection.createDiv({ cls: 'quick-actions-container' });
 
@@ -345,7 +307,7 @@ export class RoleSwitchView extends ItemView {
 		if (this.plugin.data.state.activeRoleId) {
 			const isLocked = this.plugin.isSessionLocked();
 			this.endSessionButton = actionsContainer.createEl('button', {
-				text: '⏹️ End Session',
+				text: 'End session ⏹️',
 				cls: 'quick-action-btn end-session'
 			});
 
@@ -458,7 +420,7 @@ export class RoleSwitchView extends ItemView {
 	private createFallbackDashboard(container: HTMLElement): void {
 		// Simple fallback content
 		container.createEl('h2', {
-			text: 'RoleSwitch Panel',
+			text: 'Role-switch panel',
 			cls: 'fallback-dashboard-title'
 		});
 
@@ -478,7 +440,7 @@ export class RoleSwitchView extends ItemView {
 
 		// Test button
 		const testBtn = container.createEl('button', {
-			text: 'Test Dashboard',
+			text: 'Test dashboard',
 			cls: 'fallback-test-button'
 		});
 		testBtn.addEventListener('click', () => {

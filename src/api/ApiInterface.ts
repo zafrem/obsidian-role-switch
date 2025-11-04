@@ -1,10 +1,10 @@
 // REST API Interface for RoleSwitch Plugin
 // Provides external access to plugin functionality via HTTP endpoints
 
-import { Plugin, RequestUrlParam, requestUrl } from 'obsidian';
 import { Role, Session, Note, RoleSwitchState, RoleSwitchEvent } from '../types';
+import type RoleSwitchPlugin from '../../main';
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
 	success: boolean;
 	data?: T;
 	error?: string;
@@ -62,12 +62,12 @@ export interface SyncPullFilters {
 }
 
 export class RoleSwitchApi {
-	private plugin: any;
-	private server: any;
+	private plugin: RoleSwitchPlugin;
+	private server: unknown;
 	private port: number;
 	private isServerRunning: boolean = false;
 
-	constructor(plugin: any, port: number = 3030) {
+	constructor(plugin: RoleSwitchPlugin, port: number = 3030) {
 		this.plugin = plugin;
 		this.port = port;
 	}
@@ -76,7 +76,7 @@ export class RoleSwitchApi {
 	// SERVER MANAGEMENT
 	// ====================
 
-	async startServer(): Promise<void> {
+	startServer(): void {
 		if (this.isServerRunning) {
 			throw new Error('API server is already running');
 		}
@@ -91,7 +91,7 @@ export class RoleSwitchApi {
 		}
 	}
 
-	async stopServer(): Promise<void> {
+	stopServer(): void {
 		if (!this.isServerRunning) {
 			return;
 		}
@@ -125,7 +125,7 @@ export class RoleSwitchApi {
 				this.plugin.data.roles.find((r: Role) => r.id === state.activeRoleId) : undefined;
 
 			let currentSession;
-			if (state.activeSessionId && state.activeStartAt) {
+			if (state.activeSessionId && state.activeStartAt && state.activeRoleId) {
 				const duration = Math.floor((Date.now() - new Date(state.activeStartAt).getTime()) / 1000);
 				currentSession = {
 					id: state.activeSessionId,
@@ -573,7 +573,7 @@ export class RoleSwitchApi {
 		}
 	}
 
-	async handleSyncBidirectional(incomingSyncData: SyncData): Promise<ApiResponse<SyncData>> {
+	handleSyncBidirectional(incomingSyncData: SyncData): ApiResponse<SyncData> {
 		try {
 			// First, merge incoming data
 			this.mergeSyncData(incomingSyncData);

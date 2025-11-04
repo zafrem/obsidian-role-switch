@@ -2,16 +2,17 @@
 // Handles cross-system session synchronization
 
 import { requestUrl } from 'obsidian';
-import { SyncEndpoint, Role, RoleSwitchEvent } from '../types';
+import { SyncEndpoint, Role, RoleSwitchEvent, ApiKey } from '../types';
 import { SyncData } from './ApiInterface';
 import { AuthService } from './AuthService';
+import type RoleSwitchPlugin from '../../main';
 
 export class SyncService {
-	private plugin: any;
+	private plugin: RoleSwitchPlugin;
 	private auth: AuthService;
 	private syncIntervalId: number | null = null;
 
-	constructor(plugin: any, auth: AuthService) {
+	constructor(plugin: RoleSwitchPlugin, auth: AuthService) {
 		this.plugin = plugin;
 		this.auth = auth;
 	}
@@ -68,7 +69,7 @@ export class SyncService {
 
 		const intervalMs = this.plugin.data.settings.syncInterval * 60 * 1000; // Convert minutes to milliseconds
 		this.syncIntervalId = window.setInterval(() => {
-			this.syncAllEndpoints();
+			void this.syncAllEndpoints();
 		}, intervalMs);
 	}
 
@@ -85,7 +86,7 @@ export class SyncService {
 		for (const endpoint of activeEndpoints as SyncEndpoint[]) {
 			try {
 				await this.syncWithEndpoint(endpoint);
-			} catch (error) {
+			} catch {
 				// Sync failed, will retry on next interval
 			}
 		}
@@ -96,7 +97,7 @@ export class SyncService {
 	// ====================
 
 	async syncWithEndpoint(endpoint: SyncEndpoint): Promise<void> {
-		const apiKey = this.plugin.data.apiKeys.find((key: any) => key.id === endpoint.apiKey);
+		const apiKey = this.plugin.data.apiKeys.find((key: ApiKey) => key.id === endpoint.apiKey);
 		if (!apiKey) {
 			throw new Error(`API key not found for endpoint: ${endpoint.name}`);
 		}
@@ -118,7 +119,7 @@ export class SyncService {
 		this.plugin.savePluginData();
 	}
 
-	private async pushToEndpoint(endpoint: SyncEndpoint, apiKey: any): Promise<void> {
+	private async pushToEndpoint(endpoint: SyncEndpoint, apiKey: ApiKey): Promise<void> {
 		const deviceId = this.plugin.data.settings.deviceId || this.generateDeviceId();
 		const syncData: SyncData = {
 			deviceId,
@@ -139,11 +140,9 @@ export class SyncService {
 		});
 	}
 
-	private async pullFromEndpoint(endpoint: SyncEndpoint, apiKey: any): Promise<void> {
+	private async pullFromEndpoint(endpoint: SyncEndpoint, apiKey: ApiKey): Promise<void> {
 		const lastSync = endpoint.lastSync || new Date(0).toISOString();
 		const deviceId = this.plugin.data.settings.deviceId;
-
-		const request = this.auth.createAuthenticatedRequest(apiKey, {});
 
 		const response = await requestUrl({
 			url: `${endpoint.url}/api/sync/pull?since=${encodeURIComponent(lastSync)}&deviceId=${encodeURIComponent(deviceId)}`,
@@ -159,7 +158,7 @@ export class SyncService {
 		}
 	}
 
-	private async bidirectionalSyncWithEndpoint(endpoint: SyncEndpoint, apiKey: any): Promise<void> {
+	private async bidirectionalSyncWithEndpoint(endpoint: SyncEndpoint, apiKey: ApiKey): Promise<void> {
 		const deviceId = this.plugin.data.settings.deviceId || this.generateDeviceId();
 		const ourSyncData: SyncData = {
 			deviceId,
@@ -190,7 +189,7 @@ export class SyncService {
 
 	async testEndpointConnection(endpoint: SyncEndpoint): Promise<{ success: boolean; message: string }> {
 		try {
-			const apiKey = this.plugin.data.apiKeys.find((key: any) => key.id === endpoint.apiKey);
+			const apiKey = this.plugin.data.apiKeys.find((key: ApiKey) => key.id === endpoint.apiKey);
 			if (!apiKey) {
 				return { success: false, message: 'API key not found' };
 			}
@@ -247,7 +246,7 @@ export class SyncService {
 		});
 
 		// Merge events (add new ones, avoid duplicates)
-		const newEvents: any[] = [];
+		const newEvents: RoleSwitchEvent[] = [];
 		syncData.events.forEach((incomingEvent: RoleSwitchEvent) => {
 			const exists = this.plugin.data.events.some((e: RoleSwitchEvent) => e.id === incomingEvent.id);
 			if (!exists) {
@@ -286,7 +285,7 @@ export class SyncService {
 	// ====================
 
 	private generateId(): string {
-		return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+		return Date.now().toString(36) + Math.random().toString(36).substring(2, 11);
 	}
 
 	private generateDeviceId(): string {

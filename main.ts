@@ -1,15 +1,13 @@
 // RoleSwitch Plugin - Main Entry Point
 
-import { Plugin, Notice, TFile } from 'obsidian';
-import { 
-	RoleSwitchData, 
-	RoleSwitchSettings, 
-	DEFAULT_SETTINGS, 
+import { Plugin, Notice } from 'obsidian';
+import {
+	RoleSwitchData,
+	DEFAULT_SETTINGS,
 	ROLESWITCH_VIEW_TYPE,
 	Role,
 	Note,
-	Session,
-	RoleSwitchEvent
+	Session
 } from './src/types';
 import { Utils } from './src/utils';
 import { RoleSwitchView } from './src/views/SidePanelView';
@@ -39,8 +37,8 @@ export default class RoleSwitchPlugin extends Plugin {
 		});
 
 		// Add ribbon icon for side panel
-		this.addRibbonIcon('clock', 'RoleSwitch Panel', () => {
-			this.activateView();
+		this.addRibbonIcon('clock', 'Role-switch panel', () => {
+			void this.activateView();
 		});
 
 		// Register commands
@@ -62,14 +60,14 @@ export default class RoleSwitchPlugin extends Plugin {
 		// Generate device ID if not exists
 		if (!this.data.settings.deviceId) {
 			this.data.settings.deviceId = this.generateDeviceId();
-			this.savePluginData();
+			void this.savePluginData();
 		}
 
 		// Start API server if enabled in settings
 		if (this.data.settings.enableApi) {
 			try {
-				await this.api.startServer();
-			} catch (error) {
+				this.api.startServer();
+			} catch {
 				// API server failed to start
 			}
 		}
@@ -81,26 +79,26 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		// Auto-save data periodically
 		this.registerInterval(window.setInterval(() => {
-			this.savePluginData();
+			void this.savePluginData();
 		}, 60000)); // Save every minute
 
 		// Save data when app is backgrounded (important for mobile)
 		this.registerDomEvent(document, 'visibilitychange', () => {
 			if (document.hidden) {
 				// App is being backgrounded, save data immediately
-				this.savePluginData();
+				void this.savePluginData();
 			}
 		});
 
 		// Save data before page unload (mobile safety)
 		this.registerDomEvent(window, 'beforeunload', () => {
-			this.savePluginData();
+			void this.savePluginData();
 		});
 	}
 
-	async onunload() {
+	onunload() {
 		// Save data before unloading (important for mobile)
-		await this.savePluginData();
+		void this.savePluginData();
 
 		this.removeStatusBar();
 		this.removeWorkspaceBorder();
@@ -114,8 +112,8 @@ export default class RoleSwitchPlugin extends Plugin {
 		// Stop API server
 		if (this.api) {
 			try {
-				await this.api.stopServer();
-			} catch (error) {
+				this.api.stopServer();
+			} catch {
 				// API server failed to stop
 			}
 		}
@@ -141,14 +139,14 @@ export default class RoleSwitchPlugin extends Plugin {
 			syncEndpoints: []
 		};
 
-		this.data = Object.assign(defaultData, await this.loadData());
+		this.data = Object.assign({}, defaultData, await this.loadData());
 	}
 
 	async savePluginData() {
 		try {
 			await this.saveData(this.data);
-		} catch (error) {
-			new Notice('RoleSwitch: Failed to save data.');
+		} catch {
+			new Notice('Role-switch: Failed to save data.');
 		}
 	}
 
@@ -181,7 +179,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		};
 
 		this.data.roles.push(role);
-		this.savePluginData();
+		void this.savePluginData();
 		this.refreshSidePanel();
 
 		return role;
@@ -194,7 +192,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		}
 
 		Object.assign(role, updates);
-		this.savePluginData();
+		void this.savePluginData();
 		this.refreshSidePanel();
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
@@ -210,7 +208,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		// NOTE: Historical events/sessions are preserved for data integrity
 		// Deleted roles will appear as "Deleted Role" in historical views
 		this.data.roles = this.data.roles.filter(r => r.id !== roleId);
-		this.savePluginData();
+		void this.savePluginData();
 		this.refreshSidePanel();
 	}
 
@@ -251,7 +249,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			meta: { sessionId }
 		});
 
-		this.savePluginData();
+		void this.savePluginData();
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 		this.refreshSidePanel();
@@ -310,7 +308,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			lockUntil: new Date(Date.now() + this.data.settings.minSessionSeconds * 1000).toISOString()
 		};
 
-		this.savePluginData();
+		void this.savePluginData();
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 		this.refreshSidePanel();
@@ -350,7 +348,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			lockUntil: null
 		};
 
-		this.savePluginData();
+		void this.savePluginData();
 		this.updateStatusBar();
 		this.updateWorkspaceBorder();
 		this.refreshSidePanel();
@@ -396,7 +394,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			session.notes.push(note);
 		}
 
-		this.savePluginData();
+		void this.savePluginData();
 		return note;
 	}
 
@@ -406,7 +404,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			const note = session.notes.find(n => n.id === noteId);
 			if (note) {
 				note.text = text;
-				this.savePluginData();
+				void this.savePluginData();
 				return;
 			}
 		}
@@ -419,7 +417,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			const noteIndex = session.notes.findIndex(n => n.id === noteId);
 			if (noteIndex !== -1) {
 				session.notes.splice(noteIndex, 1);
-				this.savePluginData();
+				void this.savePluginData();
 				return;
 			}
 		}
@@ -447,7 +445,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		}
 
 		if (leaf) {
-			workspace.revealLeaf(leaf);
+			await workspace.revealLeaf(leaf);
 		}
 	}
 
@@ -531,7 +529,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			id: 'open-panel',
 			name: 'Open panel',
 			callback: () => {
-				this.activateView();
+				void this.activateView();
 			}
 		});
 
@@ -592,13 +590,13 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.addCommand({
 			id: 'start-api-server',
 			name: 'Start API server',
-			callback: async () => {
+			callback: () => {
 				if (!this.api) {
 					new Notice('API not initialized');
 					return;
 				}
 				try {
-					await this.api.startServer();
+					this.api.startServer();
 					new Notice('API server started successfully');
 				} catch (error) {
 					new Notice(`Failed to start API server: ${error}`);
@@ -609,13 +607,13 @@ export default class RoleSwitchPlugin extends Plugin {
 		this.addCommand({
 			id: 'stop-api-server',
 			name: 'Stop API server',
-			callback: async () => {
+			callback: () => {
 				if (!this.api) {
 					new Notice('API not initialized');
 					return;
 				}
 				try {
-					await this.api.stopServer();
+					this.api.stopServer();
 					new Notice('API server stopped successfully');
 				} catch (error) {
 					new Notice(`Failed to stop API server: ${error}`);
@@ -632,19 +630,19 @@ export default class RoleSwitchPlugin extends Plugin {
 		return this.api ? this.api.getStatus() : null;
 	}
 
-	async startApiServer() {
+	startApiServer() {
 		if (this.api) {
-			await this.api.startServer();
+			this.api.startServer();
 		}
 	}
 
-	async stopApiServer() {
+	stopApiServer() {
 		if (this.api) {
-			await this.api.stopServer();
+			this.api.stopServer();
 		}
 	}
 
-	handleApiRequest(method: string, url: string, headers: Record<string, string>, body?: any) {
+	handleApiRequest(method: string, url: string, headers: Record<string, string>, body?: unknown) {
 		if (!this.httpServer) {
 			return {
 				statusCode: 503,
