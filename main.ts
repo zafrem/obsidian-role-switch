@@ -146,7 +146,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		try {
 			await this.saveData(this.data);
 		} catch {
-			new Notice('Role-switch: Failed to save data.');
+			new Notice('Role-switch: failed to save data.');
 		}
 	}
 
@@ -477,7 +477,7 @@ export default class RoleSwitchPlugin extends Plugin {
 				this.statusBarItem.setCssProps({ '--role-color': role.colorHex });
 			}
 		} else {
-			this.statusBarItem.setText('⏸️ No active role');
+			this.statusBarItem.setText('⏸️ no active role');
 			this.statusBarItem.addClass('role-inactive');
 		}
 	}
@@ -665,7 +665,7 @@ export default class RoleSwitchPlugin extends Plugin {
 
 	private generateDeviceId(): string {
 		return Math.random().toString(36).substring(2, 15) +
-			   Math.random().toString(36).substring(2, 15);
+			Math.random().toString(36).substring(2, 15);
 	}
 
 	// ====================

@@ -622,7 +622,7 @@ export class RoleSwitchApi {
 		// Only update state if the incoming state is more recent
 		if (syncData.state.activeStartAt &&
 			(!this.plugin.data.state.activeStartAt ||
-			 new Date(syncData.state.activeStartAt) > new Date(this.plugin.data.state.activeStartAt))) {
+			new Date(syncData.state.activeStartAt) > new Date(this.plugin.data.state.activeStartAt))) {
 
 			// Check if the role exists locally
 			const roleExists = this.plugin.data.roles.some((r: Role) => r.id === syncData.state.activeRoleId);

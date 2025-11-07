@@ -637,7 +637,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	private showApiKeyModal(): void {
 		// Create a simple modal for API key creation
 		const modal = new Modal(this.app);
-		modal.titleEl.setText('Create api key');
+		modal.titleEl.setText('Create api key.');
 
 		const { contentEl } = modal;
 
@@ -655,7 +655,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			});
 
 		// Ensure nameInput is assigned
-		nameSetting;
+		void nameSetting;
 
 		// Permissions
 		new Setting(contentEl)
@@ -724,21 +724,21 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			});
 
 		// Ensure nameInput is assigned
-		nameSetting;
+		void nameSetting;
 
 		// URL
 		new Setting(contentEl)
 			.setName('Endpoint URL')
-			.setDesc('Full url to the other role-switch api')
+			.setDesc('Full url to the other role switch api.')
 			.addText(text => {
 				urlInput = text.inputEl;
-				text.setPlaceholder('Http://localhost:3030');
+				text.setPlaceholder('http://localhost:3030');
 			});
 
 		// API Key selection
 		new Setting(contentEl)
-			.setName('Api key')
-			.setDesc('Select api key to use for authentication')
+			.setName('Select api key')
+			.setDesc('Select api key to use for authentication.')
 			.addDropdown(dropdown => {
 				const apiKeys = this.plugin.data.apiKeys.filter(key => key.isActive);
 				if (apiKeys.length === 0) {

@@ -240,7 +240,7 @@ export class Utils {
 	/**
 	 * Debounce function to limit rapid calls
 	 */
-	static debounce<T extends (...args: any[]) => void>(
+	static debounce<T extends (...args: unknown[]) => void>(
 		func: T,
 		wait: number
 	): (...args: Parameters<T>) => void {
