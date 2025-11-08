@@ -729,7 +729,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			.setDesc('Full URL to the other role switch API')
 			.addText(text => {
 				urlInput = text.inputEl;
-				text.setPlaceholder('Connect to http://localhost:3030');
+				text.setPlaceholder('Connect to localhost and port 3030.');
 			});
 
 		// API Key selection
