@@ -42,12 +42,12 @@ export class RoleSwitchView extends ItemView {
 		const container = this.containerEl.children[1];
 
 		if (!container) {
-			return;
+			return await Promise.resolve();
 		}
 
 		// Type check: ensure container is HTMLElement
 		if (!(container instanceof HTMLElement)) {
-			return;
+			return await Promise.resolve();
 		}
 
 		container.empty();
@@ -60,11 +60,13 @@ export class RoleSwitchView extends ItemView {
 			// Fallback: create a simple test display
 			this.createFallbackDashboard(container);
 		}
+		return await Promise.resolve();
 	}
 
 	async onClose() {
 		// Cleanup timer when view closes
 		this.stopRealtimeTimer();
+		return await Promise.resolve();
 	}
 
 	private createSidePanelDashboard(container: HTMLElement): void {
@@ -414,7 +416,7 @@ export class RoleSwitchView extends ItemView {
 	public refresh(): void {
 		// Stop any existing timer before refreshing
 		this.stopRealtimeTimer();
-		this.onOpen();
+		void this.onOpen();
 	}
 
 	private createFallbackDashboard(container: HTMLElement): void {

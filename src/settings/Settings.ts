@@ -571,7 +571,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 							.onClick(async () => {
 								const confirmed = await this.confirmDeleteEndpoint(endpoint);
 								if (confirmed) {
-									this.plugin.sync.deleteSyncEndpoint(endpoint.id);
+									await this.plugin.sync.deleteSyncEndpoint(endpoint.id);
 									this.display(); // Refresh settings
 									new Notice('Sync endpoint deleted');
 								}
@@ -579,8 +579,8 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 					})
 					.addToggle(toggle => {
 						toggle.setValue(endpoint.isActive)
-							.onChange((value) => {
-								this.plugin.sync.updateSyncEndpoint(endpoint.id, { isActive: value });
+							.onChange(async (value) => {
+								await this.plugin.sync.updateSyncEndpoint(endpoint.id, { isActive: value });
 								new Notice(`Endpoint ${value ? 'enabled' : 'disabled'}`);
 							});
 					});
@@ -632,7 +632,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	private showApiKeyModal(): void {
 		// Create a simple modal for API key creation
 		const modal = new Modal(this.app);
-		modal.titleEl.setText('Create api key.');
+		modal.titleEl.setText('Create API key');
 
 		const { contentEl } = modal;
 
@@ -726,7 +726,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// URL
 		new Setting(contentEl)
 			.setName('Endpoint URL')
-			.setDesc('Full url to the other role switch api.')
+			.setDesc('Full URL to the other RoleSwitch API')
 			.addText(text => {
 				urlInput = text.inputEl;
 				text.setPlaceholder('http://localhost:3030');
@@ -777,7 +777,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			}
 
 			try {
-				this.plugin.sync.addSyncEndpoint(name, url, apiKeyId, syncDirection);
+				await this.plugin.sync.addSyncEndpoint(name, url, apiKeyId, syncDirection);
 				new Notice('Sync endpoint added');
 				modal.close();
 				this.display(); // Refresh settings
@@ -823,7 +823,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 	private createDonateSection(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName('💝 Support development')
+			.setName('Support development')
 			.setHeading();
 
 		const donateContainer = containerEl.createDiv({
@@ -895,7 +895,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			.addText(text => {
 				this.nameInput = text.inputEl;
 				text.setValue(this.role?.name || '')
-					.setPlaceholder('e.g., deep work, meetings, learning');
+					.setPlaceholder('e.g., Deep work, Meetings, Learning');
 			});
 
 		// Description input
