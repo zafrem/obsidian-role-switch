@@ -726,10 +726,10 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// URL
 		new Setting(contentEl)
 			.setName('Endpoint URL')
-			.setDesc('Full URL to the other RoleSwitch API')
+			.setDesc('Full URL to the other role switch API')
 			.addText(text => {
 				urlInput = text.inputEl;
-				text.setPlaceholder('http://localhost:3030');
+				text.setPlaceholder('Connect to http://localhost:3030');
 			});
 
 		// API Key selection
@@ -766,24 +766,26 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 
 		const createBtn = buttonContainer.createEl('button', { text: 'Add endpoint', cls: 'mod-cta' });
-		createBtn.addEventListener('click', async () => {
-			const name = nameInput!.value.trim();
-			const url = urlInput!.value.trim();
-			const apiKeyId = apiKeySelect.value;
+		createBtn.addEventListener('click', () => {
+			void (async () => {
+				const name = nameInput!.value.trim();
+				const url = urlInput!.value.trim();
+				const apiKeyId = apiKeySelect.value;
 
-			if (!name || !url || !apiKeyId) {
-				new Notice('All fields are required');
-				return;
-			}
+				if (!name || !url || !apiKeyId) {
+					new Notice('All fields are required');
+					return;
+				}
 
-			try {
-				await this.plugin.sync.addSyncEndpoint(name, url, apiKeyId, syncDirection);
-				new Notice('Sync endpoint added');
-				modal.close();
-				this.display(); // Refresh settings
-			} catch {
-				new Notice('Failed to add sync endpoint');
-			}
+				try {
+					await this.plugin.sync.addSyncEndpoint(name, url, apiKeyId, syncDirection);
+					new Notice('Sync endpoint added');
+					modal.close();
+					this.display(); // Refresh settings
+				} catch {
+					new Notice('Failed to add sync endpoint');
+				}
+			})();
 		});
 
 		const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
@@ -895,7 +897,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 			.addText(text => {
 				this.nameInput = text.inputEl;
 				text.setValue(this.role?.name || '')
-					.setPlaceholder('e.g., Deep work, Meetings, Learning');
+					.setPlaceholder('Ex: deep work, meetings, learning');
 			});
 
 		// Description input
