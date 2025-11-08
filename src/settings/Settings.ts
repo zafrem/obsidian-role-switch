@@ -766,7 +766,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 
 		const createBtn = buttonContainer.createEl('button', { text: 'Add endpoint', cls: 'mod-cta' });
-		createBtn.addEventListener('click', () => {
+		createBtn.addEventListener('click', async () => {
 			const name = nameInput!.value.trim();
 			const url = urlInput!.value.trim();
 			const apiKeyId = apiKeySelect.value;
