@@ -19,10 +19,6 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Role-switch settings')
-			.setHeading();
-
 		// Role Management Section (Top Priority)
 		this.createRoleManagementSection(containerEl);
 		
@@ -116,7 +112,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 	private createSessionSettingsSection(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName('Session settings')
+			.setName('Session')
 			.setHeading();
 
 		// Transition duration with buttons and input
@@ -212,7 +208,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 	private createDisplaySettingsSection(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName('Display settings')
+			.setName('Display')
 			.setHeading();
 
 		new Setting(containerEl)
@@ -365,7 +361,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 	private createApiAndSyncSettingsSection(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName('API & synchronization settings')
+			.setName('API & synchronization')
 			.setHeading();
 
 		// Enable Sync toggle (enables API automatically)
@@ -380,10 +376,10 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 						await this.plugin.savePluginData();
 
 						if (value) {
-							await this.plugin.startApiServer();
+							this.plugin.startApiServer();
 							this.plugin.sync.startAutoSync();
 						} else {
-							await this.plugin.stopApiServer();
+							this.plugin.stopApiServer();
 							this.plugin.sync.stopAutoSync();
 						}
 						this.display(); // Refresh to show/hide settings
@@ -505,7 +501,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 							.onClick(async () => {
 								const confirmed = await this.confirmDeleteApiKey(apiKey);
 								if (confirmed) {
-									this.plugin.auth.deleteApiKey(apiKey.id);
+									await this.plugin.auth.deleteApiKey(apiKey.id);
 									this.display(); // Refresh settings
 									new Notice('API key deleted');
 								}
@@ -514,14 +510,13 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 					.addToggle(toggle => {
 						toggle.setValue(apiKey.isActive)
 							.onChange((value) => {
-								this.plugin.auth.updateApiKey(apiKey.id, { isActive: value });
+								void this.plugin.auth.updateApiKey(apiKey.id, { isActive: value });
 								new Notice(`API key ${value ? 'enabled' : 'disabled'}`);
 							});
 					});
 			});
 		}
 	}
-
 
 	private createSyncEndpointManagement(containerEl: HTMLElement): void {
 		new Setting(containerEl)
@@ -679,20 +674,22 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		const createBtn = buttonContainer.createEl('button', { text: 'Create key', cls: 'mod-cta' });
 		createBtn.addEventListener('click', () => {
-			const name = nameInput!.value.trim();
-			if (!name) {
-				new Notice('Key name is required');
-				return;
-			}
+			void (async () => {
+				const name = nameInput!.value.trim();
+				if (!name) {
+					new Notice('Key name is required');
+					return;
+				}
 
-			try {
-				const apiKey = this.plugin.auth.generateApiKey(name, permissions);
-				new Notice(`API key created: ${apiKey.key}\nSecret: ${apiKey.secret}`, 10000);
-				modal.close();
-				this.display(); // Refresh settings
-			} catch {
-				new Notice('Failed to create API key');
-			}
+				try {
+					const apiKey = await this.plugin.auth.generateApiKey(name, permissions);
+					new Notice(`API key created: ${apiKey.key}\nSecret: ${apiKey.secret}`, 10000);
+					modal.close();
+					this.display(); // Refresh settings
+				} catch {
+					new Notice('Failed to create API key');
+				}
+			})();
 		});
 
 		const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
@@ -737,12 +734,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// API Key selection
 		new Setting(contentEl)
-			.setName('Select api key')
-			.setDesc('Select api key to use for authentication.')
+			.setName('Select API key')
+			.setDesc('Select API key to use for authentication.')
 			.addDropdown(dropdown => {
 				const apiKeys = this.plugin.data.apiKeys.filter(key => key.isActive);
 				if (apiKeys.length === 0) {
-					dropdown.addOption('', 'No active api keys available');
+					dropdown.addOption('', 'No active API keys available');
 				} else {
 					apiKeys.forEach(key => {
 						dropdown.addOption(key.id, key.name);
@@ -850,7 +847,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			});
 
 		new Setting(donateContainer)
-			.setName('Github sponsors')
+			.setName('GitHub sponsors')
 			.setDesc('Become a sponsor and support ongoing development')
 			.addButton(button => {
 				button.setButtonText('Sponsor 💖')

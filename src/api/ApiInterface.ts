@@ -519,10 +519,10 @@ export class RoleSwitchApi {
 	// SYNC ENDPOINTS
 	// ====================
 
-	handleSyncPush(syncData: SyncData): ApiResponse {
+	async handleSyncPush(syncData: SyncData): Promise<ApiResponse> {
 		try {
 			// Store incoming sync data and merge with local data
-			this.mergeSyncData(syncData);
+			await this.mergeSyncData(syncData);
 
 			return {
 				success: true,
@@ -540,9 +540,9 @@ export class RoleSwitchApi {
 		}
 	}
 
-	handleSyncPull(filters?: SyncPullFilters): ApiResponse<SyncData> {
+	async handleSyncPull(filters?: SyncPullFilters): Promise<ApiResponse<SyncData>> {
 		try {
-			const deviceId = this.plugin.data.settings.deviceId || this.generateDeviceId();
+			const deviceId = this.plugin.data.settings.deviceId || await this.generateDeviceId();
 			const deviceName = this.plugin.data.settings.deviceName;
 
 			// Filter events based on timestamp if provided
@@ -573,13 +573,13 @@ export class RoleSwitchApi {
 		}
 	}
 
-	handleSyncBidirectional(incomingSyncData: SyncData): ApiResponse<SyncData> {
+	async handleSyncBidirectional(incomingSyncData: SyncData): Promise<ApiResponse<SyncData>> {
 		try {
 			// First, merge incoming data
-			this.mergeSyncData(incomingSyncData);
+			await this.mergeSyncData(incomingSyncData);
 
 			// Then, return our current data for the remote system to merge
-			const pullResult = this.handleSyncPull();
+			const pullResult = await this.handleSyncPull();
 
 			return {
 				success: true,
@@ -594,7 +594,7 @@ export class RoleSwitchApi {
 		}
 	}
 
-	private mergeSyncData(syncData: SyncData): void {
+	private async mergeSyncData(syncData: SyncData): Promise<void> {
 		// Merge roles (update existing, add new ones)
 		syncData.roles.forEach((incomingRole: Role) => {
 			const existingRoleIndex = this.plugin.data.roles.findIndex((r: Role) => r.id === incomingRole.id);
@@ -632,7 +632,7 @@ export class RoleSwitchApi {
 		}
 
 		// Save merged data
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 
 		// Refresh UI
 		this.plugin.updateStatusBar();
@@ -640,11 +640,11 @@ export class RoleSwitchApi {
 		this.plugin.refreshSidePanel();
 	}
 
-	private generateDeviceId(): string {
+	private async generateDeviceId(): Promise<string> {
 		const deviceId = Math.random().toString(36).substring(2, 15) +
 						Math.random().toString(36).substring(2, 15);
 		this.plugin.data.settings.deviceId = deviceId;
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 		return deviceId;
 	}
 }

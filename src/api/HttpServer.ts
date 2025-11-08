@@ -25,7 +25,7 @@ export class RoleSwitchHttpServer {
 	private api: RoleSwitchApi;
 	private auth: AuthService;
 	private routes: Map<string, {
-		handler: (req: HttpRequest) => HttpResponse;
+		handler: (req: HttpRequest) => HttpResponse | Promise<HttpResponse>;
 		permission?: ApiPermission;
 	}>;
 
@@ -143,7 +143,7 @@ export class RoleSwitchHttpServer {
 	}
 
 	// Route handler method
-	handleRequest(req: HttpRequest): HttpResponse {
+	async handleRequest(req: HttpRequest): Promise<HttpResponse> {
 		try {
 			// Add CORS headers
 			const corsHeaders = {
@@ -191,7 +191,7 @@ export class RoleSwitchHttpServer {
 			req.params = this.extractPathParams(req.url, routeKey);
 			req.query = this.extractQueryParams(req.url);
 
-			const response = route.handler(req);
+			const response = await route.handler(req);
 			response.headers = { ...corsHeaders, ...response.headers };
 
 			return response;
@@ -437,7 +437,7 @@ export class RoleSwitchHttpServer {
 		}
 	}
 
-	private handleUpdateApiKey(req: HttpRequest): HttpResponse {
+	private async handleUpdateApiKey(req: HttpRequest): Promise<HttpResponse> {
 		const keyId = req.params?.id;
 		if (!keyId) {
 			return this.createResponse({ success: false, error: 'API key ID is required' });
@@ -448,21 +448,21 @@ export class RoleSwitchHttpServer {
 		}
 
 		try {
-			this.auth.updateApiKey(keyId, req.body as Partial<Omit<ApiKey, 'id' | 'key' | 'secret' | 'createdAt'>>);
+			await this.auth.updateApiKey(keyId, req.body as Partial<Omit<ApiKey, 'id' | 'key' | 'secret' | 'createdAt'>>);
 			return this.createResponse({ success: true, message: 'API key updated successfully' });
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Failed to update API key: ${error}` });
 		}
 	}
 
-	private handleDeleteApiKey(req: HttpRequest): HttpResponse {
+	private async handleDeleteApiKey(req: HttpRequest): Promise<HttpResponse> {
 		const keyId = req.params?.id;
 		if (!keyId) {
 			return this.createResponse({ success: false, error: 'API key ID is required' });
 		}
 
 		try {
-			this.auth.deleteApiKey(keyId);
+			await this.auth.deleteApiKey(keyId);
 			return this.createResponse({ success: true, message: 'API key deleted successfully' });
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Failed to delete API key: ${error}` });
@@ -473,39 +473,39 @@ export class RoleSwitchHttpServer {
 	// SYNC HANDLERS
 	// ====================
 
-	private handleSyncPush(req: HttpRequest): HttpResponse {
+	private async handleSyncPush(req: HttpRequest): Promise<HttpResponse> {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
 		try {
-			const result = this.api.handleSyncPush(req.body as SyncData);
+			const result = await this.api.handleSyncPush(req.body as SyncData);
 			return this.createResponse(result);
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Sync push failed: ${error}` });
 		}
 	}
 
-	private handleSyncPull(req: HttpRequest): HttpResponse {
+	private async handleSyncPull(req: HttpRequest): Promise<HttpResponse> {
 		try {
 			const filters = {
 				since: req.query?.since,
 				deviceId: req.query?.deviceId
 			};
-			const result = this.api.handleSyncPull(filters);
+			const result = await this.api.handleSyncPull(filters);
 			return this.createResponse(result);
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Sync pull failed: ${error}` });
 		}
 	}
 
-	private handleSyncBidirectional(req: HttpRequest): HttpResponse {
+	private async handleSyncBidirectional(req: HttpRequest): Promise<HttpResponse> {
 		if (!req.body) {
 			return this.createResponse({ success: false, error: 'Request body is required' });
 		}
 
 		try {
-			const result = this.api.handleSyncBidirectional(req.body as SyncData);
+			const result = await this.api.handleSyncBidirectional(req.body as SyncData);
 			return this.createResponse(result);
 		} catch (error) {
 			return this.createResponse({ success: false, error: `Bidirectional sync failed: ${error}` });

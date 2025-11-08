@@ -21,7 +21,7 @@ export class SyncService {
 	// SYNC ENDPOINT MANAGEMENT
 	// ====================
 
-	addSyncEndpoint(name: string, url: string, apiKey: string, syncDirection: 'push' | 'pull' | 'bidirectional'): SyncEndpoint {
+	async addSyncEndpoint(name: string, url: string, apiKey: string, syncDirection: 'push' | 'pull' | 'bidirectional'): Promise<SyncEndpoint> {
 		const endpoint: SyncEndpoint = {
 			id: this.generateId(),
 			name,
@@ -32,26 +32,26 @@ export class SyncService {
 		};
 
 		this.plugin.data.syncEndpoints.push(endpoint);
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 
 		return endpoint;
 	}
 
-	updateSyncEndpoint(endpointId: string, updates: Partial<Omit<SyncEndpoint, 'id'>>): void {
+	async updateSyncEndpoint(endpointId: string, updates: Partial<Omit<SyncEndpoint, 'id'>>): Promise<void> {
 		const endpoint = this.plugin.data.syncEndpoints.find((ep: SyncEndpoint) => ep.id === endpointId);
 		if (!endpoint) {
 			throw new Error('Sync endpoint not found');
 		}
 
 		Object.assign(endpoint, updates);
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 	}
 
-	deleteSyncEndpoint(endpointId: string): void {
+	async deleteSyncEndpoint(endpointId: string): Promise<void> {
 		this.plugin.data.syncEndpoints = this.plugin.data.syncEndpoints.filter(
 			(ep: SyncEndpoint) => ep.id !== endpointId
 		);
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 	}
 
 	getSyncEndpoints(): SyncEndpoint[] {
@@ -83,7 +83,7 @@ export class SyncService {
 	async syncAllEndpoints(): Promise<void> {
 		const activeEndpoints = this.plugin.data.syncEndpoints.filter((ep: SyncEndpoint) => ep.isActive);
 
-		for (const endpoint of activeEndpoints as SyncEndpoint[]) {
+		for (const endpoint of activeEndpoints) {
 			try {
 				await this.syncWithEndpoint(endpoint);
 			} catch {
@@ -116,11 +116,11 @@ export class SyncService {
 
 		// Update last sync timestamp
 		endpoint.lastSync = new Date().toISOString();
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 	}
 
 	private async pushToEndpoint(endpoint: SyncEndpoint, apiKey: ApiKey): Promise<void> {
-		const deviceId = this.plugin.data.settings.deviceId || this.generateDeviceId();
+		const deviceId = this.plugin.data.settings.deviceId || await this.generateDeviceId();
 		const syncData: SyncData = {
 			deviceId,
 			deviceName: this.plugin.data.settings.deviceName,
@@ -154,12 +154,12 @@ export class SyncService {
 		});
 
 		if (response.json.success && response.json.data) {
-			this.mergeSyncData(response.json.data);
+			await this.mergeSyncData(response.json.data);
 		}
 	}
 
 	private async bidirectionalSyncWithEndpoint(endpoint: SyncEndpoint, apiKey: ApiKey): Promise<void> {
-		const deviceId = this.plugin.data.settings.deviceId || this.generateDeviceId();
+		const deviceId = this.plugin.data.settings.deviceId || await this.generateDeviceId();
 		const ourSyncData: SyncData = {
 			deviceId,
 			deviceName: this.plugin.data.settings.deviceName,
@@ -179,7 +179,7 @@ export class SyncService {
 		});
 
 		if (response.json.success && response.json.data) {
-			this.mergeSyncData(response.json.data);
+			await this.mergeSyncData(response.json.data);
 		}
 	}
 
@@ -231,7 +231,7 @@ export class SyncService {
 	// CONFLICT RESOLUTION
 	// ====================
 
-	private mergeSyncData(syncData: SyncData): void {
+	private async mergeSyncData(syncData: SyncData): Promise<void> {
 		// This is similar to the API version but runs locally
 		// Merge roles (update existing, add new ones)
 		syncData.roles.forEach((incomingRole: Role) => {
@@ -272,7 +272,7 @@ export class SyncService {
 		}
 
 		// Save merged data
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 
 		// Refresh UI
 		this.plugin.updateStatusBar();
@@ -288,11 +288,11 @@ export class SyncService {
 		return Date.now().toString(36) + Math.random().toString(36).substring(2, 11);
 	}
 
-	private generateDeviceId(): string {
+	private async generateDeviceId(): Promise<string> {
 		const deviceId = Math.random().toString(36).substring(2, 15) +
 						Math.random().toString(36).substring(2, 15);
 		this.plugin.data.settings.deviceId = deviceId;
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 		return deviceId;
 	}
 

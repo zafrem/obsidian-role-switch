@@ -14,7 +14,7 @@ import { RoleSwitchView } from './src/views/SidePanelView';
 import { TransitionModal, RolePickerModal, NoteEditModal, RoleDashboardModal } from './src/views/Modals';
 import { RoleSwitchSettingsTab } from './src/settings/Settings';
 import { RoleSwitchApi } from './src/api/ApiInterface';
-import { RoleSwitchHttpServer } from './src/api/HttpServer';
+import { RoleSwitchHttpServer, HttpResponse } from './src/api/HttpServer';
 import { AuthService } from './src/api/AuthService';
 import { SyncService } from './src/api/SyncService';
 
@@ -642,7 +642,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		}
 	}
 
-	handleApiRequest(method: string, url: string, headers: Record<string, string>, body?: unknown) {
+	async handleApiRequest(method: string, url: string, headers: Record<string, string>, body?: unknown): Promise<HttpResponse> {
 		if (!this.httpServer) {
 			return {
 				statusCode: 503,
@@ -651,7 +651,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			};
 		}
 
-		return this.httpServer.handleRequest({
+		return await this.httpServer.handleRequest({
 			method,
 			url,
 			headers,

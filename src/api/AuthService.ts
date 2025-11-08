@@ -16,7 +16,7 @@ export class AuthService {
 	// API KEY MANAGEMENT
 	// ====================
 
-	generateApiKey(name: string, permissions: ApiPermission[]): ApiKey {
+	async generateApiKey(name: string, permissions: ApiPermission[]): Promise<ApiKey> {
 		const apiKey: ApiKey = {
 			id: Utils.generateId(),
 			name,
@@ -28,7 +28,7 @@ export class AuthService {
 		};
 
 		this.plugin.data.apiKeys.push(apiKey);
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 
 		return apiKey;
 	}
@@ -42,19 +42,19 @@ export class AuthService {
 		return result;
 	}
 
-	updateApiKey(keyId: string, updates: Partial<Omit<ApiKey, 'id' | 'key' | 'secret' | 'createdAt'>>): void {
+	async updateApiKey(keyId: string, updates: Partial<Omit<ApiKey, 'id' | 'key' | 'secret' | 'createdAt'>>): Promise<void> {
 		const apiKey = this.plugin.data.apiKeys.find((key: ApiKey) => key.id === keyId);
 		if (!apiKey) {
 			throw new Error('API key not found');
 		}
 
 		Object.assign(apiKey, updates);
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 	}
 
-	deleteApiKey(keyId: string): void {
+	async deleteApiKey(keyId: string): Promise<void> {
 		this.plugin.data.apiKeys = this.plugin.data.apiKeys.filter((key: ApiKey) => key.id !== keyId);
-		this.plugin.savePluginData();
+		await this.plugin.savePluginData();
 	}
 
 	getApiKeys(): ApiKey[] {
@@ -93,7 +93,7 @@ export class AuthService {
 
 		// Update last used timestamp
 		apiKey.lastUsed = new Date().toISOString();
-		this.plugin.savePluginData();
+		void this.plugin.savePluginData();
 
 		return apiKey;
 	}
@@ -229,7 +229,7 @@ export class AuthService {
 
 		// Update last used
 		apiKey.lastUsed = new Date().toISOString();
-		this.plugin.savePluginData();
+		void this.plugin.savePluginData();
 
 		return { isValid: true, apiKey };
 	}
