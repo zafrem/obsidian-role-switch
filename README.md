@@ -182,9 +182,6 @@ When switching roles, you'll see:
 The following features are currently disabled in this version but remain in the codebase for future use:
 
 - **API & Synchronization Settings**: Combined API server and device synchronization functionality (will be enabled in a future version)
-- **Donation Section**: Support development section in settings (currently commented out)
-
-These features can be re-enabled by uncommenting the relevant sections in `src/settings/Settings.ts`.
 
 ---
 
