@@ -247,8 +247,8 @@ export class Utils {
 		let timeout: NodeJS.Timeout;
 		
 		return (...args: Parameters<T>) => {
-			clearTimeout(timeout);
-			timeout = setTimeout(() => func(...args), wait);
+			window.clearTimeout(timeout);
+			timeout = window.setTimeout(() => func(...args), wait);
 		};
 	}
 

@@ -395,7 +395,7 @@ export class RoleSwitchView extends ItemView {
 
 			// Add visual click effect
 			roleCard.addClass('clicked');
-			setTimeout(() => roleCard.removeClass('clicked'), 200);
+			window.setTimeout(() => roleCard.removeClass('clicked'), 200);
 
 			if (isActive) {
 				// Open dashboard when clicking active role

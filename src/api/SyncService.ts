@@ -75,7 +75,7 @@ export class SyncService {
 
 	stopAutoSync(): void {
 		if (this.syncIntervalId) {
-			clearInterval(this.syncIntervalId);
+			window.clearInterval(this.syncIntervalId);
 			this.syncIntervalId = null;
 		}
 	}

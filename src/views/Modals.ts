@@ -81,7 +81,7 @@ export class TransitionModal extends Modal {
 				// Automatically switch when countdown reaches 0
 				this.plugin.confirmSwitch(this.targetRole.id);
 				if (this.countdownInterval) {
-					clearInterval(this.countdownInterval);
+					window.clearInterval(this.countdownInterval);
 				}
 				this.close();
 			}
@@ -106,7 +106,7 @@ export class TransitionModal extends Modal {
 
 	onClose() {
 		if (this.countdownInterval) {
-			clearInterval(this.countdownInterval);
+			window.clearInterval(this.countdownInterval);
 		}
 		const { contentEl } = this;
 		contentEl.empty();
@@ -231,7 +231,7 @@ export class RolePickerModal extends Modal {
 			}
 
 			// Defer close to next tick to allow events to complete
-			setTimeout(() => this.close(), 0);
+			window.setTimeout(() => this.close(), 0);
 		});
 	}
 
@@ -619,7 +619,7 @@ export class RoleDashboardModal extends Modal {
 	private startRealtimeTimer(): void {
 		// Clear any existing timer
 		if (this.timerInterval) {
-			clearInterval(this.timerInterval);
+			window.clearInterval(this.timerInterval);
 		}
 
 		// Update timer every second if there's an active session
@@ -669,7 +669,7 @@ export class RoleDashboardModal extends Modal {
 
 	onClose() {
 		if (this.timerInterval) {
-			clearInterval(this.timerInterval);
+			window.clearInterval(this.timerInterval);
 		}
 		const { contentEl } = this;
 		contentEl.empty();
