@@ -237,20 +237,7 @@ export class Utils {
 		return JSON.stringify(data, null, 2);
 	}
 
-	/**
-	 * Debounce function to limit rapid calls
-	 */
-	static debounce<T extends (...args: unknown[]) => void>(
-		func: T,
-		wait: number
-	): (...args: Parameters<T>) => void {
-		let timeout: NodeJS.Timeout;
-		
-		return (...args: Parameters<T>) => {
-			window.clearTimeout(timeout);
-			timeout = window.setTimeout(() => func(...args), wait);
-		};
-	}
+	// Note: Use Obsidian's built-in debounce function instead: import { debounce } from 'obsidian';
 
 	/**
 	 * Validate hex color

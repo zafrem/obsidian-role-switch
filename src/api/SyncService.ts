@@ -63,18 +63,19 @@ export class SyncService {
 	// ====================
 
 	startAutoSync(): void {
-		if (this.syncIntervalId || !this.plugin.data.settings.enableSync) {
+		if (this.syncIntervalId !== null || !this.plugin.data.settings.enableSync) {
 			return;
 		}
 
 		const intervalMs = this.plugin.data.settings.syncInterval * 60 * 1000; // Convert minutes to milliseconds
-		this.syncIntervalId = window.setInterval(() => {
+		// Use plugin's registerInterval for proper lifecycle management
+		this.syncIntervalId = this.plugin.registerInterval(window.setInterval(() => {
 			void this.syncAllEndpoints();
-		}, intervalMs);
+		}, intervalMs));
 	}
 
 	stopAutoSync(): void {
-		if (this.syncIntervalId) {
+		if (this.syncIntervalId !== null) {
 			window.clearInterval(this.syncIntervalId);
 			this.syncIntervalId = null;
 		}

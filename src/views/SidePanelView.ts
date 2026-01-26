@@ -1,17 +1,11 @@
 // Side Panel View Component
 
-import { ItemView, WorkspaceLeaf, Notice, Platform } from 'obsidian';
+import { ItemView, WorkspaceLeaf, Notice } from 'obsidian';
 import { ROLESWITCH_VIEW_TYPE, Role } from '../types';
 import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import { RoleDashboardModal } from './Modals';
 import type RoleSwitchPlugin from '../../main';
-
-// Type guard to check if adapter has basePath property (desktop only)
-// Using 'unknown' to avoid referencing DataAdapter which is desktop-only
-function hasBasePath(adapter: unknown): adapter is { basePath: string } {
-	return typeof adapter === 'object' && adapter !== null && 'basePath' in adapter && typeof (adapter as Record<string, unknown>).basePath === 'string';
-}
 
 export class RoleSwitchView extends ItemView {
 	private plugin: RoleSwitchPlugin;
@@ -71,53 +65,19 @@ export class RoleSwitchView extends ItemView {
 
 	private createSidePanelDashboard(container: HTMLElement): void {
 		// Header with plugin branding
-		const header = container.createDiv({ cls: 'side-panel-header' });
+		const header = container.createDiv({ cls: 'rs-side-panel-header' });
 
 		// RoleSwitch logo or icon
-		const headerIcon = header.createDiv({ cls: 'header-icon' });
+		const headerIcon = header.createDiv({ cls: 'rs-header-icon' });
 
-		// Skip logo on mobile, use icon instead
-		if (Platform.isMobile) {
-			const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-			if (iconElement.firstChild instanceof Node) {
-				headerIcon.appendChild(iconElement.firstChild);
-			}
-		} else {
-			try {
-				// Use plugin resource path with type guard for safe property access
-				const adapter = this.app.vault.adapter;
-				if (hasBasePath(adapter)) {
-					const configDir = this.app.vault.configDir;
-					const pluginDir = `${adapter.basePath}/${configDir}/plugins/obsidian-role-switch`;
-					const logo = headerIcon.createEl('img', {
-						attr: {
-							src: `app://local/${pluginDir}/image/logo.png`,
-							alt: 'Role-switch logo'
-						},
-						cls: 'header-logo size-24'
-					});
-
-					// Fallback if image fails to load
-					logo.addEventListener('error', () => {
-						headerIcon.empty();
-						const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-						if (iconElement.firstChild instanceof Node) {
-							headerIcon.appendChild(iconElement.firstChild);
-						}
-					});
-				}
-			} catch {
-				// Fallback to icon
-				const iconElement = IconLibrary.createIconElement('A', 20, 'var(--interactive-accent)');
-				if (iconElement.firstChild instanceof Node) {
-					headerIcon.appendChild(iconElement.firstChild);
-				}
-			}
-		}
+		// Use inline SVG logo
+		const logoElement = IconLibrary.createLogoElement(24);
+		logoElement.addClass('rs-header-logo');
+		headerIcon.appendChild(logoElement);
 
 		header.createEl('h2', {
 			text: 'Role-switch',
-			cls: 'header-title'
+			cls: 'rs-header-title'
 		});
 
 		// Roles section (moved to top)
@@ -143,36 +103,36 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	private createCompactStatusSection(container: HTMLElement): void {
-		const statusSection = container.createDiv({ cls: 'side-panel-section' });
+		const statusSection = container.createDiv({ cls: 'rs-side-panel-section' });
 		statusSection.createEl('h3', { text: 'Current history' });
 
-		const statusCard = statusSection.createDiv({ cls: 'current-status-compact' });
+		const statusCard = statusSection.createDiv({ cls: 'rs-current-status-compact' });
 
 		// Current active session
 		if (this.plugin.data.state.activeRoleId) {
 			const activeRole = this.plugin.data.roles.find(r => r.id === this.plugin.data.state.activeRoleId);
 			if (activeRole) {
 				const statusInfo = statusCard.createDiv({
-					cls: 'status-info'
+					cls: 'rs-status-info'
 				});
 
 				// Role icon/color
 				const roleIndicator = statusInfo.createDiv({
-					cls: 'role-indicator role-color-bg'
+					cls: 'rs-role-indicator rs-role-color-bg'
 				});
 				roleIndicator.setCssProps({ '--role-color': activeRole.colorHex });
 
 				if (activeRole.icon && IconLibrary.ICONS[activeRole.icon]) {
 					const iconElement = IconLibrary.createIconElement(activeRole.icon, 12, 'white');
-					iconElement.addClass('icon-filter-shadow');
+					iconElement.addClass('rs-icon-filter-shadow');
 					roleIndicator.appendChild(iconElement);
 				}
 
 				// Role info
-				const roleInfo = statusInfo.createDiv({ cls: 'role-info' });
+				const roleInfo = statusInfo.createDiv({ cls: 'rs-role-info' });
 				const roleName = roleInfo.createEl('div', {
 					text: activeRole.name,
-					cls: 'role-name role-color-text'
+					cls: 'rs-role-name rs-role-color-text'
 				});
 				roleName.setCssProps({ '--role-color': activeRole.colorHex });
 
@@ -196,7 +156,7 @@ export class RoleSwitchView extends ItemView {
 
 					this.durationElement = roleInfo.createEl('div', {
 						text: initialText,
-						cls: 'role-duration'
+						cls: 'rs-role-duration'
 					});
 
 					// Start real-time timer
@@ -211,7 +171,7 @@ export class RoleSwitchView extends ItemView {
 					const remaining = this.plugin.getRemainingLockTime();
 					this.lockElement = statusCard.createDiv({
 						text: `🔒 Locked (${remaining}s)`,
-						cls: 'session-locked'
+						cls: 'rs-session-locked'
 					});
 				} else {
 					this.lockElement = null;
@@ -224,7 +184,7 @@ export class RoleSwitchView extends ItemView {
 
 			statusCard.createDiv({
 				text: '⏸️ No active session',
-				cls: 'no-active-session'
+				cls: 'rs-no-active-session'
 			});
 		}
 
@@ -234,16 +194,16 @@ export class RoleSwitchView extends ItemView {
 
 	private createTodayHistorySection(container: HTMLElement): void {
 		const today = Utils.getStartOfDay();
-		
+
 		// Get today's sessions
 		const todaySessions = this.plugin.getDerivedSessions(today, new Date());
-		
+
 		if (todaySessions.length > 0) {
 			// History header
-			const historyHeader = container.createDiv({ cls: 'history-divider' });
+			const historyHeader = container.createDiv({ cls: 'rs-history-divider' });
 			historyHeader.createEl('div', {
 				text: "Today's history",
-				cls: 'history-header'
+				cls: 'rs-history-header'
 			});
 
 			// Show last 3 sessions
@@ -251,16 +211,16 @@ export class RoleSwitchView extends ItemView {
 			recentSessions.forEach(session => {
 				const role = this.plugin.data.roles.find(r => r.id === session.roleId);
 				if (role) {
-					const sessionEl = container.createDiv({ cls: 'history-session' });
+					const sessionEl = container.createDiv({ cls: 'rs-history-session' });
 
 					// Small role indicator
-					const indicator = sessionEl.createDiv({ cls: 'role-indicator role-color-bg' });
+					const indicator = sessionEl.createDiv({ cls: 'rs-role-indicator rs-role-color-bg' });
 					indicator.setCssProps({ '--role-color': role.colorHex });
 
 					// Session info
-					const sessionInfo = sessionEl.createDiv({ cls: 'session-info' });
+					const sessionInfo = sessionEl.createDiv({ cls: 'rs-session-info' });
 					const startTime = new Date(session.startAt).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-					
+
 					// Calculate duration
 					let duration = 0;
 					if (session.endAt) {
@@ -268,10 +228,10 @@ export class RoleSwitchView extends ItemView {
 					} else if (session.id === this.plugin.data.state.activeSessionId) {
 						duration = Math.round((Date.now() - new Date(session.startAt).getTime()) / (1000 * 60));
 					}
-					
+
 					sessionInfo.createEl('div', {
 						text: `${role.name} • ${startTime} • ${duration}min`,
-						cls: 'session-details'
+						cls: 'rs-session-details'
 					});
 				}
 			});
@@ -280,22 +240,22 @@ export class RoleSwitchView extends ItemView {
 			if (todaySessions.length > 3) {
 				container.createEl('div', {
 					text: `+${todaySessions.length - 3} more sessions`,
-					cls: 'more-sessions'
+					cls: 'rs-more-sessions'
 				});
 			}
 		}
 	}
 
 	private createQuickActionsSection(container: HTMLElement): void {
-		const actionsSection = container.createDiv({ cls: 'side-panel-section' });
+		const actionsSection = container.createDiv({ cls: 'rs-side-panel-section' });
 		actionsSection.createEl('h3', { text: 'Quick actions' });
 
-		const actionsContainer = actionsSection.createDiv({ cls: 'quick-actions-container' });
+		const actionsContainer = actionsSection.createDiv({ cls: 'rs-quick-actions-container' });
 
 		// Dashboard button
 		const dashboardBtn = actionsContainer.createEl('button', {
 			text: 'Dashboard',
-			cls: 'quick-action-btn'
+			cls: 'rs-quick-action-btn'
 		});
 		dashboardBtn.addEventListener('click', () => {
 			try {
@@ -310,12 +270,12 @@ export class RoleSwitchView extends ItemView {
 			const isLocked = this.plugin.isSessionLocked();
 			this.endSessionButton = actionsContainer.createEl('button', {
 				text: 'End session ⏹️',
-				cls: 'quick-action-btn end-session'
+				cls: 'rs-quick-action-btn rs-end-session'
 			});
 
 			if (isLocked) {
 				this.endSessionButton.disabled = true;
-				this.endSessionButton.addClass('locked');
+				this.endSessionButton.addClass('rs-locked');
 				const remaining = this.plugin.getRemainingLockTime();
 				this.endSessionButton.title = `Session locked for ${remaining} more seconds`;
 			}
@@ -332,10 +292,10 @@ export class RoleSwitchView extends ItemView {
 	}
 
 	private createCompactRolesSection(container: HTMLElement): void {
-		const rolesSection = container.createDiv({ cls: 'side-panel-section' });
+		const rolesSection = container.createDiv({ cls: 'rs-side-panel-section' });
 		rolesSection.createEl('h3', { text: 'Roles' });
 
-		const rolesGrid = rolesSection.createDiv({ cls: 'compact-roles-grid' });
+		const rolesGrid = rolesSection.createDiv({ cls: 'rs-compact-roles-grid' });
 
 		// Clear the lock elements map before recreating role cards
 		this.roleLockElements.clear();
@@ -350,30 +310,30 @@ export class RoleSwitchView extends ItemView {
 		const isLocked = isActive && this.plugin.isSessionLocked();
 
 		const roleCard = container.createDiv({
-			cls: `compact-role-card ${isActive ? 'active role-color-border' : ''} ${isLocked ? 'locked' : ''}`
+			cls: `rs-compact-role-card ${isActive ? 'rs-active rs-role-color-border' : ''} ${isLocked ? 'rs-locked' : ''}`
 		});
 
 		if (isActive) {
 			roleCard.setCssProps({ '--role-color': role.colorHex });
 		}
 
-		const roleHeader = roleCard.createDiv({ cls: 'compact-role-header' });
-		
+		const roleHeader = roleCard.createDiv({ cls: 'rs-compact-role-header' });
+
 		// Role icon/color circle
-		const roleIndicator = roleHeader.createDiv({ cls: 'compact-role-icon role-color-bg' });
+		const roleIndicator = roleHeader.createDiv({ cls: 'rs-compact-role-icon rs-role-color-bg' });
 		roleIndicator.setCssProps({ '--role-color': role.colorHex });
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconElement = IconLibrary.createIconElement(role.icon, 10, 'white');
-			iconElement.addClass('icon-filter-shadow');
+			iconElement.addClass('rs-icon-filter-shadow');
 			roleIndicator.appendChild(iconElement);
 		}
 
 		// Role info
-		const roleInfo = roleHeader.createDiv({ cls: 'role-info' });
+		const roleInfo = roleHeader.createDiv({ cls: 'rs-role-info' });
 		roleInfo.createEl('div', {
 			text: role.name,
-			cls: 'compact-role-name'
+			cls: 'rs-compact-role-name'
 		});
 
 		// Lock status
@@ -381,7 +341,7 @@ export class RoleSwitchView extends ItemView {
 			const remaining = this.plugin.getRemainingLockTime();
 			const lockStatusEl = roleCard.createDiv({
 				text: `🔒 ${remaining}s`,
-				cls: 'lock-status'
+				cls: 'rs-lock-status'
 			});
 			// Store reference to this lock element for real-time updates
 			this.roleLockElements.set(role.id, lockStatusEl);
@@ -394,8 +354,8 @@ export class RoleSwitchView extends ItemView {
 			}
 
 			// Add visual click effect
-			roleCard.addClass('clicked');
-			window.setTimeout(() => roleCard.removeClass('clicked'), 200);
+			roleCard.addClass('rs-clicked');
+			window.setTimeout(() => roleCard.removeClass('rs-clicked'), 200);
 
 			if (isActive) {
 				// Open dashboard when clicking active role
@@ -423,17 +383,17 @@ export class RoleSwitchView extends ItemView {
 		// Simple fallback content
 		container.createEl('h2', {
 			text: 'Role-switch panel',
-			cls: 'fallback-dashboard-title'
+			cls: 'rs-fallback-dashboard-title'
 		});
 
 		container.createEl('p', {
 			text: 'Dashboard is loading...',
-			cls: 'fallback-dashboard-loading'
+			cls: 'rs-fallback-dashboard-loading'
 		});
 
 		// Show plugin data info
 		const infoDiv = container.createDiv({
-			cls: 'fallback-info-container'
+			cls: 'rs-fallback-info-container'
 		});
 
 		infoDiv.createEl('p', { text: `Roles count: ${this.plugin.data.roles.length}` });
@@ -443,7 +403,7 @@ export class RoleSwitchView extends ItemView {
 		// Test button
 		const testBtn = container.createEl('button', {
 			text: 'Test dashboard',
-			cls: 'fallback-test-button'
+			cls: 'rs-fallback-test-button'
 		});
 		testBtn.addEventListener('click', () => {
 			new Notice('Dashboard is working!');
@@ -459,11 +419,11 @@ export class RoleSwitchView extends ItemView {
 			return;
 		}
 
-		// Update timer every second
-		this.timerInterval = window.setInterval(() => {
+		// Update timer every second - use plugin's registerInterval for proper lifecycle management
+		this.timerInterval = this.plugin.registerInterval(window.setInterval(() => {
 			this.updateDurationDisplay();
 			this.updateLockDisplay();
-		}, 1000);
+		}, 1000));
 	}
 
 	private stopRealtimeTimer(): void {
@@ -535,13 +495,13 @@ export class RoleSwitchView extends ItemView {
 		if (this.endSessionButton) {
 			if (isLocked) {
 				this.endSessionButton.disabled = true;
-				this.endSessionButton.addClass('locked');
+				this.endSessionButton.addClass('rs-locked');
 				const remaining = this.plugin.getRemainingLockTime();
 				this.endSessionButton.title = `Session locked for ${remaining} more seconds`;
 			} else {
 				// Session is no longer locked, enable the button
 				this.endSessionButton.disabled = false;
-				this.endSessionButton.removeClass('locked');
+				this.endSessionButton.removeClass('rs-locked');
 				this.endSessionButton.title = '';
 			}
 		}

@@ -21,10 +21,10 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// Role Management Section (Top Priority)
 		this.createRoleManagementSection(containerEl);
-		
+
 		// Session Settings Section
 		this.createSessionSettingsSection(containerEl);
-		
+
 		// Display Settings Section
 		this.createDisplaySettingsSection(containerEl);
 
@@ -57,12 +57,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 	}
 
 	private createRolesList(containerEl: HTMLElement): void {
-		const rolesContainer = containerEl.createDiv({ cls: 'roles-list-container' });
-		
+		const rolesContainer = containerEl.createDiv({ cls: 'rs-roles-list-container' });
+
 		if (this.plugin.data.roles.length === 0) {
 			rolesContainer.createDiv({
 				text: 'No roles created yet. Add your first role above.',
-				cls: 'no-roles-message'
+				cls: 'rs-no-roles-message'
 			});
 			return;
 		}
@@ -95,18 +95,18 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		// Add visual role indicator
 		const colorEl = document.createElement('div');
-		colorEl.addClass('role-color-indicator');
-		colorEl.addClass('role-color-bg');
+		colorEl.addClass('rs-role-color-indicator');
+		colorEl.addClass('rs-role-color-bg');
 		colorEl.setCssProps({ '--role-color': role.colorHex });
 
 		if (role.icon && IconLibrary.ICONS[role.icon]) {
 			const iconEl = document.createElement('div');
-			iconEl.addClass('role-icon-container');
+			iconEl.addClass('rs-role-icon-container');
 			const iconElement = IconLibrary.createIconElement(role.icon, 12, 'white');
 			iconEl.appendChild(iconElement);
 			colorEl.appendChild(iconEl);
 		}
-		
+
 		roleSetting.nameEl.prepend(colorEl);
 	}
 
@@ -120,14 +120,14 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			.setName('Transition duration')
 			.setDesc('Time to wait before switching roles (seconds)');
 
-		const transitionContainer = transitionSetting.controlEl.createDiv({ cls: 'setting-item-control-flex' });
+		const transitionContainer = transitionSetting.controlEl.createDiv({ cls: 'rs-setting-item-control-flex' });
 
 		// Preset buttons for transition
 		const transitionPresets = [5, 10, 30];
 		transitionPresets.forEach(preset => {
 			const btn = transitionContainer.createEl('button', {
 				text: `${preset}s`,
-				cls: 'setting-preset-button'
+				cls: 'rs-setting-preset-button'
 			});
 			btn.addEventListener('click', () => {
 				void (async () => {
@@ -141,7 +141,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// Direct input
 		const transitionInput = transitionContainer.createEl('input', {
 			type: 'number',
-			cls: 'setting-number-input',
+			cls: 'rs-setting-number-input',
 			attr: { min: '5', max: '120', step: '5' }
 		});
 		transitionInput.value = this.plugin.data.settings.transitionSeconds.toString();
@@ -158,21 +158,21 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		});
 
 		// Unit label
-		transitionContainer.createSpan({ text: 'seconds', cls: 'setting-unit-label' });
+		transitionContainer.createSpan({ text: 'seconds', cls: 'rs-setting-unit-label' });
 
 		// Minimum session duration with buttons and input
 		const sessionSetting = new Setting(containerEl)
 			.setName('Minimum session duration')
 			.setDesc('Minimum time before allowing role switches (minutes)');
 
-		const sessionContainer = sessionSetting.controlEl.createDiv({ cls: 'setting-item-control-flex' });
+		const sessionContainer = sessionSetting.controlEl.createDiv({ cls: 'rs-setting-item-control-flex' });
 
 		// Preset buttons for session (in minutes)
 		const sessionPresets = [5, 15, 30];
 		sessionPresets.forEach(preset => {
 			const btn = sessionContainer.createEl('button', {
 				text: `${preset}m`,
-				cls: 'setting-preset-button'
+				cls: 'rs-setting-preset-button'
 			});
 			btn.addEventListener('click', () => {
 				void (async () => {
@@ -186,7 +186,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		// Direct input (in minutes)
 		const sessionInput = sessionContainer.createEl('input', {
 			type: 'number',
-			cls: 'setting-number-input',
+			cls: 'rs-setting-number-input',
 			attr: { min: '5', max: '60', step: '5' }
 		});
 		sessionInput.value = (this.plugin.data.settings.minSessionSeconds / 60).toString();
@@ -203,7 +203,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		});
 
 		// Unit label
-		sessionContainer.createSpan({ text: 'minutes', cls: 'setting-unit-label' });
+		sessionContainer.createSpan({ text: 'minutes', cls: 'rs-setting-unit-label' });
 	}
 
 	private createDisplaySettingsSection(containerEl: HTMLElement): void {
@@ -232,55 +232,58 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 						this.plugin.data.settings.showWorkspaceBorder = value;
 						await this.plugin.savePluginData();
 						this.plugin.updateWorkspaceBorder();
+						this.display();
 					});
 			});
 
-		// Border opacity with buttons and input
-		const opacitySetting = new Setting(containerEl)
-			.setName('Border opacity')
-			.setDesc('Opacity of the workspace border (0.1 to 1.0)');
+		// Border opacity - only show when workspace border is enabled
+		if (this.plugin.data.settings.showWorkspaceBorder) {
+			const opacitySetting = new Setting(containerEl)
+				.setName('Border opacity')
+				.setDesc('Opacity of the workspace border (0.1 to 1.0)');
 
-		const opacityContainer = opacitySetting.controlEl.createDiv({ cls: 'setting-item-control-flex' });
+			const opacityContainer = opacitySetting.controlEl.createDiv({ cls: 'rs-setting-item-control-flex' });
 
-		// Preset buttons for opacity
-		const opacityPresets = [0.3, 0.5, 0.8];
-		opacityPresets.forEach(preset => {
-			const btn = opacityContainer.createEl('button', {
-				text: `${preset}`,
-				cls: 'setting-preset-button'
+			// Preset buttons for opacity
+			const opacityPresets = [0.3, 0.5, 0.8];
+			opacityPresets.forEach(preset => {
+				const btn = opacityContainer.createEl('button', {
+					text: `${preset}`,
+					cls: 'rs-setting-preset-button'
+				});
+				btn.addEventListener('click', () => {
+					void (async () => {
+						this.plugin.data.settings.borderOpacity = preset;
+						await this.plugin.savePluginData();
+						this.plugin.updateWorkspaceBorder();
+						opacityInput.value = preset.toString();
+					})();
+				});
 			});
-			btn.addEventListener('click', () => {
+
+			// Direct input
+			const opacityInput = opacityContainer.createEl('input', {
+				type: 'number',
+				cls: 'rs-setting-number-input',
+				attr: { min: '0.1', max: '1.0', step: '0.1' }
+			});
+			opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
+			opacityInput.addEventListener('change', () => {
 				void (async () => {
-					this.plugin.data.settings.borderOpacity = preset;
-					await this.plugin.savePluginData();
-					this.plugin.updateWorkspaceBorder();
-					opacityInput.value = preset.toString();
+					const value = parseFloat(opacityInput.value);
+					if (value >= 0.1 && value <= 1.0) {
+						this.plugin.data.settings.borderOpacity = value;
+						await this.plugin.savePluginData();
+						this.plugin.updateWorkspaceBorder();
+					} else {
+						opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
+					}
 				})();
 			});
-		});
 
-		// Direct input
-		const opacityInput = opacityContainer.createEl('input', {
-			type: 'number',
-			cls: 'setting-number-input',
-			attr: { min: '0.1', max: '1.0', step: '0.1' }
-		});
-		opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
-		opacityInput.addEventListener('change', () => {
-			void (async () => {
-				const value = parseFloat(opacityInput.value);
-				if (value >= 0.1 && value <= 1.0) {
-					this.plugin.data.settings.borderOpacity = value;
-					await this.plugin.savePluginData();
-					this.plugin.updateWorkspaceBorder();
-				} else {
-					opacityInput.value = this.plugin.data.settings.borderOpacity.toString();
-				}
-			})();
-		});
-
-		// Unit label
-		opacityContainer.createSpan({ text: 'opacity', cls: 'setting-unit-label' });
+			// Unit label
+			opacityContainer.createSpan({ text: 'opacity', cls: 'rs-setting-unit-label' });
+		}
 
 		new Setting(containerEl)
 			.setName('Show periodic role reminder')
@@ -291,55 +294,58 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 						this.plugin.data.settings.showPeriodicReminder = value;
 						await this.plugin.savePluginData();
 						this.plugin.updateReminderInterval();
+						this.display();
 					});
 			});
 
-		// Reminder interval with buttons and input
-		const reminderSetting = new Setting(containerEl)
-			.setName('Reminder interval')
-			.setDesc('How often to show the role reminder (minutes)');
+		// Reminder interval - only show when periodic reminder is enabled
+		if (this.plugin.data.settings.showPeriodicReminder) {
+			const reminderSetting = new Setting(containerEl)
+				.setName('Reminder interval')
+				.setDesc('How often to show the role reminder (minutes)');
 
-		const reminderContainer = reminderSetting.controlEl.createDiv({ cls: 'setting-item-control-flex' });
+			const reminderContainer = reminderSetting.controlEl.createDiv({ cls: 'rs-setting-item-control-flex' });
 
-		// Preset buttons for reminder interval
-		const reminderPresets = [5, 15, 30];
-		reminderPresets.forEach(preset => {
-			const btn = reminderContainer.createEl('button', {
-				text: `${preset}m`,
-				cls: 'setting-preset-button'
+			// Preset buttons for reminder interval
+			const reminderPresets = [5, 15, 30];
+			reminderPresets.forEach(preset => {
+				const btn = reminderContainer.createEl('button', {
+					text: `${preset}m`,
+					cls: 'rs-setting-preset-button'
+				});
+				btn.addEventListener('click', () => {
+					void (async () => {
+						this.plugin.data.settings.reminderIntervalMinutes = preset;
+						await this.plugin.savePluginData();
+						this.plugin.updateReminderInterval();
+						reminderInput.value = preset.toString();
+					})();
+				});
 			});
-			btn.addEventListener('click', () => {
+
+			// Direct input
+			const reminderInput = reminderContainer.createEl('input', {
+				type: 'number',
+				cls: 'rs-setting-number-input',
+				attr: { min: '1', max: '60', step: '1' }
+			});
+			reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
+			reminderInput.addEventListener('change', () => {
 				void (async () => {
-					this.plugin.data.settings.reminderIntervalMinutes = preset;
-					await this.plugin.savePluginData();
-					this.plugin.updateReminderInterval();
-					reminderInput.value = preset.toString();
+					const value = parseInt(reminderInput.value);
+					if (value >= 1 && value <= 60) {
+						this.plugin.data.settings.reminderIntervalMinutes = value;
+						await this.plugin.savePluginData();
+						this.plugin.updateReminderInterval();
+					} else {
+						reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
+					}
 				})();
 			});
-		});
 
-		// Direct input
-		const reminderInput = reminderContainer.createEl('input', {
-			type: 'number',
-			cls: 'setting-number-input',
-			attr: { min: '1', max: '60', step: '1' }
-		});
-		reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
-		reminderInput.addEventListener('change', () => {
-			void (async () => {
-				const value = parseInt(reminderInput.value);
-				if (value >= 1 && value <= 60) {
-					this.plugin.data.settings.reminderIntervalMinutes = value;
-					await this.plugin.savePluginData();
-					this.plugin.updateReminderInterval();
-				} else {
-					reminderInput.value = this.plugin.data.settings.reminderIntervalMinutes.toString();
-				}
-			})();
-		});
-
-		// Unit label
-		reminderContainer.createSpan({ text: 'minutes', cls: 'setting-unit-label' });
+			// Unit label
+			reminderContainer.createSpan({ text: 'minutes', cls: 'rs-setting-unit-label' });
+		}
 
 		// Reset settings button
 		new Setting(containerEl)
@@ -485,7 +491,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		if (apiKeys.length === 0) {
 			containerEl.createDiv({
 				text: 'No API keys created yet.',
-				cls: 'setting-item-description'
+				cls: 'rs-setting-item-description'
 			});
 		} else {
 			apiKeys.forEach(apiKey => {
@@ -539,7 +545,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 		if (endpoints.length === 0) {
 			containerEl.createDiv({
 				text: 'No sync endpoints configured.',
-				cls: 'setting-item-description'
+				cls: 'rs-setting-item-description'
 			});
 		} else {
 			endpoints.forEach(endpoint => {
@@ -670,7 +676,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			});
 
 		// Buttons
-		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
+		const buttonContainer = contentEl.createDiv({ cls: 'rs-modal-button-container' });
 
 		const createBtn = buttonContainer.createEl('button', { text: 'Create key', cls: 'mod-cta' });
 		createBtn.addEventListener('click', () => {
@@ -763,7 +769,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			});
 
 		// Buttons
-		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
+		const buttonContainer = contentEl.createDiv({ cls: 'rs-modal-button-container' });
 
 		const createBtn = buttonContainer.createEl('button', { text: 'Add endpoint', cls: 'mod-cta' });
 		createBtn.addEventListener('click', () => {
@@ -829,12 +835,12 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 			.setHeading();
 
 		const donateContainer = containerEl.createDiv({
-			cls: 'donate-section'
+			cls: 'rs-donate-section'
 		});
 
 		donateContainer.createEl('p', {
 			text: 'If you find role-switch helpful, consider supporting its development!',
-			cls: 'donate-text'
+			cls: 'rs-donate-text'
 		});
 
 		new Setting(donateContainer)
@@ -860,7 +866,7 @@ export class RoleSwitchSettingsTab extends PluginSettingTab {
 
 		donateContainer.createEl('p', {
 			text: 'Thank you for your support! ❤️',
-			cls: 'donate-thank-you'
+			cls: 'rs-donate-thank-you'
 		});
 	}
 }
@@ -932,13 +938,13 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 
 		// Action buttons
 		const buttonContainer = contentEl.createDiv({
-			cls: 'role-edit-buttons'
+			cls: 'rs-role-edit-buttons'
 		});
 
 		const saveBtn = buttonContainer.createEl('button', { text: 'Save' });
 
 		// Add CSS class for styling
-		saveBtn.addClass('role-edit-save');
+		saveBtn.addClass('rs-role-edit-save');
 
 		saveBtn.addEventListener('click', (event) => {
 			event.preventDefault();
@@ -954,7 +960,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 		const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
 
 		// Add CSS class for styling
-		cancelBtn.addClass('role-edit-cancel');
+		cancelBtn.addClass('rs-role-edit-cancel');
 
 		cancelBtn.addEventListener('click', (event) => {
 			event.preventDefault();
@@ -979,7 +985,7 @@ class RoleEditModal extends Modal implements RoleEditModalInterface {
 							this.updateIconDisplay(button.buttonEl);
 						}, this.selectedIcon || undefined).open();
 					});
-				
+
 				this.updateIconDisplay(button.buttonEl);
 			});
 	}
@@ -1083,12 +1089,12 @@ class ConfirmModal extends Modal {
 		contentEl.createEl('p', { text: this.message });
 
 		const buttonContainer = contentEl.createDiv({
-			cls: 'confirm-modal-buttons'
+			cls: 'rs-confirm-modal-buttons'
 		});
 
 		const confirmBtn = buttonContainer.createEl('button', {
 			text: this.confirmText,
-			cls: this.isDestructive ? 'confirm-button destructive' : 'confirm-button'
+			cls: this.isDestructive ? 'rs-confirm-button rs-destructive' : 'rs-confirm-button'
 		});
 		confirmBtn.addEventListener('click', () => {
 			this.close();

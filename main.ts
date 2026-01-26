@@ -77,11 +77,6 @@ export default class RoleSwitchPlugin extends Plugin {
 			this.sync.startAutoSync();
 		}
 
-		// Auto-save data periodically
-		this.registerInterval(window.setInterval(() => {
-			void this.savePluginData();
-		}, 60000)); // Save every minute
-
 		// Save data when app is backgrounded (important for mobile)
 		this.registerDomEvent(document, 'visibilitychange', () => {
 			if (document.hidden) {
@@ -466,19 +461,19 @@ export default class RoleSwitchPlugin extends Plugin {
 
 		if (!this.statusBarItem) {
 			this.statusBarItem = this.addStatusBarItem();
-			this.statusBarItem.addClass('status-bar-item');
+			this.statusBarItem.addClass('rs-status-bar-item');
 		}
 
 		if (this.data.state.activeRoleId) {
 			const role = this.data.roles.find(r => r.id === this.data.state.activeRoleId);
 			if (role) {
 				this.statusBarItem.setText(`🎯 ${role.name}`);
-				this.statusBarItem.addClass('role-active');
+				this.statusBarItem.addClass('rs-role-active');
 				this.statusBarItem.setCssProps({ '--role-color': role.colorHex });
 			}
 		} else {
 			this.statusBarItem.setText('⏸️ no active role');
-			this.statusBarItem.addClass('role-inactive');
+			this.statusBarItem.addClass('rs-role-inactive');
 		}
 	}
 
@@ -500,7 +495,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		if (!role) return;
 
 		this.borderEl = document.createElement('div');
-		this.borderEl.addClass('workspace-border');
+		this.borderEl.addClass('rs-workspace-border');
 		this.borderEl.setCssProps({
 			'--role-color': role.colorHex,
 			'--border-opacity': this.data.settings.borderOpacity.toString()
@@ -524,7 +519,7 @@ export default class RoleSwitchPlugin extends Plugin {
 	// ====================
 
 	private registerCommands(): void {
-		// Open side panel
+		// Open side panel - always available
 		this.addCommand({
 			id: 'open-panel',
 			name: 'Open panel',
@@ -533,7 +528,7 @@ export default class RoleSwitchPlugin extends Plugin {
 			}
 		});
 
-		// Open dashboard
+		// Open dashboard - always available
 		this.addCommand({
 			id: 'open-dashboard',
 			name: 'Open dashboard',
@@ -542,82 +537,102 @@ export default class RoleSwitchPlugin extends Plugin {
 			}
 		});
 
-		// Start/Resume role
+		// Start/Resume role - available when roles exist
 		this.addCommand({
 			id: 'start-session',
 			name: 'Start session',
-			callback: () => {
-				new RolePickerModal(this.app, this, 'start').open();
+			checkCallback: (checking: boolean) => {
+				if (this.data.roles.length === 0) {
+					return false;
+				}
+				if (!checking) {
+					new RolePickerModal(this.app, this, 'start').open();
+				}
+				return true;
 			}
 		});
 
-		// Switch role
+		// Switch role - only available when there's an active session
 		this.addCommand({
 			id: 'switch-session',
 			name: 'Switch session',
-			callback: () => {
+			checkCallback: (checking: boolean) => {
 				if (!this.data.state.activeRoleId) {
-					new Notice('No active session to switch from');
-					return;
+					return false;
 				}
-				new RolePickerModal(this.app, this, 'switch').open();
+				if (!checking) {
+					new RolePickerModal(this.app, this, 'switch').open();
+				}
+				return true;
 			}
 		});
 
-		// End current role
+		// End current role - only available when there's an active session
 		this.addCommand({
 			id: 'end-session',
 			name: 'End current session',
-			callback: () => {
-				this.endSession();
+			checkCallback: (checking: boolean) => {
+				if (!this.data.state.activeRoleId) {
+					return false;
+				}
+				if (!checking) {
+					this.endSession();
+				}
+				return true;
 			}
 		});
 
-		// Add note command
+		// Add note command - only available when there's an active session
 		this.addCommand({
 			id: 'add-note',
 			name: 'Add note to current session',
-			callback: () => {
+			checkCallback: (checking: boolean) => {
 				if (!this.data.state.activeSessionId) {
-					new Notice('No active session to add note to');
-					return;
+					return false;
 				}
-				new NoteEditModal(this.app, this, this.data.state.activeSessionId, null).open();
+				if (!checking) {
+					new NoteEditModal(this.app, this, this.data.state.activeSessionId, null).open();
+				}
+				return true;
 			}
 		});
 
-		// API commands
+		// API commands - only available when API is initialized
 		this.addCommand({
 			id: 'start-api-server',
 			name: 'Start API server',
-			callback: () => {
+			checkCallback: (checking: boolean) => {
 				if (!this.api) {
-					new Notice('API not initialized');
-					return;
+					return false;
 				}
-				try {
-					this.api.startServer();
-					new Notice('API server started successfully');
-				} catch (error) {
-					new Notice(`Failed to start API server: ${error}`);
+				if (!checking) {
+					try {
+						this.api.startServer();
+						new Notice('API server started successfully');
+					} catch (error) {
+						new Notice(`Failed to start API server: ${error}`);
+					}
 				}
+				return true;
 			}
 		});
 
 		this.addCommand({
 			id: 'stop-api-server',
 			name: 'Stop API server',
-			callback: () => {
+			checkCallback: (checking: boolean) => {
 				if (!this.api) {
-					new Notice('API not initialized');
-					return;
+					return false;
 				}
-				try {
-					this.api.stopServer();
-					new Notice('API server stopped successfully');
-				} catch (error) {
-					new Notice(`Failed to stop API server: ${error}`);
+				if (!checking) {
+					try {
+						this.api.stopServer();
+						new Notice('API server stopped successfully');
+					} catch (error) {
+						new Notice(`Failed to stop API server: ${error}`);
+					}
 				}
+				return true;
 			}
 		});
 	}
@@ -716,7 +731,7 @@ export default class RoleSwitchPlugin extends Plugin {
 		// Create a styled notice with the role color
 		const fragment = document.createDocumentFragment();
 		const span = document.createElement('span');
-		span.addClass('role-color-bold');
+		span.addClass('rs-role-color-bold');
 		span.setCssProps({ '--role-color': role.colorHex });
 		span.textContent = `You are now playing the role of '${role.name}'. Don't forget, you are playing the role of '${role.name}'.`;
 		fragment.appendChild(span);

@@ -1,6 +1,15 @@
 // Icon Library - Contains all SVG icons and rendering utilities
 
 export class IconLibrary {
+	// Plugin logo: person silhouette with sync arrows
+	static readonly LOGO_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+		<circle cx="10" cy="6" r="3" fill="currentColor"/>
+		<path d="M10 10c-3.5 0-6 2-6 5v2h12v-2c0-3-2.5-5-6-5z" fill="currentColor"/>
+		<circle cx="18" cy="15" r="5" fill="var(--interactive-accent, #1a9e6d)"/>
+		<path d="M18 12.5v2h2M18 17.5v-2h-2" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+		<path d="M20.5 14.5a2.5 2.5 0 0 0-2.5-2M15.5 15.5a2.5 2.5 0 0 0 2.5 2" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+	</svg>`;
+
 	static readonly ICONS: { [key: string]: string } = {
 		'A': `<svg viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="bold" font-family="Arial, sans-serif">A</text></svg>`,
 		'B': `<svg viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="bold" font-family="Arial, sans-serif">B</text></svg>`,
@@ -41,7 +50,7 @@ export class IconLibrary {
 
 	static createIconElement(iconKey: string, size: number = 24, color: string = 'currentColor'): HTMLElement {
 		const container = document.createElement('div');
-		container.addClass('icon-element-container');
+		container.addClass('rs-icon-element-container');
 		// Use CSS custom properties for dynamic values so themes can override
 		container.setCssProps({
 			'--icon-size': size + 'px',
@@ -69,16 +78,16 @@ export class IconLibrary {
 					container.appendChild(importedSvg);
 				} else {
 					container.textContent = iconKey.charAt(0).toUpperCase();
-					container.addClass('icon-fallback-text');
+					container.addClass('rs-icon-fallback-text');
 				}
 			} catch {
 				container.textContent = iconKey.charAt(0).toUpperCase();
-				container.addClass('icon-fallback-text');
+				container.addClass('rs-icon-fallback-text');
 			}
 		} else {
 			// Fallback text for missing icons
 			container.textContent = iconKey.charAt(0).toUpperCase();
-			container.addClass('icon-fallback-text');
+			container.addClass('rs-icon-fallback-text');
 		}
 
 		return container;
@@ -86,6 +95,33 @@ export class IconLibrary {
 
 	static getAllIcons(): string[] {
 		return Object.keys(this.ICONS);
+	}
+
+	static createLogoElement(size: number = 24): HTMLElement {
+		const container = document.createElement('div');
+		container.addClass('rs-icon-element-container');
+		container.setCssProps({
+			'--icon-size': size + 'px'
+		});
+
+		try {
+			const parser = new DOMParser();
+			const doc = parser.parseFromString(this.LOGO_SVG, 'image/svg+xml');
+			const svg = doc.querySelector('svg');
+
+			if (svg) {
+				svg.setAttribute('width', size.toString());
+				svg.setAttribute('height', size.toString());
+				const importedSvg = document.importNode(svg, true);
+				container.appendChild(importedSvg);
+			}
+		} catch {
+			// Fallback to text
+			container.textContent = 'R';
+			container.addClass('rs-icon-fallback-text');
+		}
+
+		return container;
 	}
 
 	static getIconsByCategory(): { [category: string]: string[] } {

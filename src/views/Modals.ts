@@ -6,12 +6,6 @@ import { IconLibrary } from '../icons';
 import { Utils } from '../utils';
 import type RoleSwitchPlugin from '../../main';
 
-// Type guard to check if adapter has basePath property (desktop only)
-// Using 'unknown' to avoid referencing DataAdapter which is desktop-only
-function hasBasePath(adapter: unknown): adapter is { basePath: string } {
-	return typeof adapter === 'object' && adapter !== null && 'basePath' in adapter && typeof (adapter as Record<string, unknown>).basePath === 'string';
-}
-
 export class TransitionModal extends Modal {
 	private plugin: RoleSwitchPlugin;
 	private targetRole: Role;
@@ -36,22 +30,22 @@ export class TransitionModal extends Modal {
 	onOpen() {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass('transition-modal');
+		contentEl.addClass('rs-transition-modal');
 
 		// Make modal mobile-friendly
 		if (Platform.isMobile) {
-			contentEl.addClass('mobile');
+			contentEl.addClass('rs-mobile');
 		}
 
 		const titleEl = contentEl.createEl('div', {
 			text: `Switching to: ${this.targetRole.name}`,
-			cls: 'transition-title role-color-text'
+			cls: 'rs-transition-title rs-role-color-text'
 		});
 		titleEl.setCssProps({ '--role-color': this.targetRole.colorHex });
 
 		const countdownEl = contentEl.createEl('div', {
 			text: `${this.remainingSeconds}s`,
-			cls: 'transition-countdown'
+			cls: 'rs-transition-countdown'
 		});
 
 		// Add random transition message
@@ -60,32 +54,32 @@ export class TransitionModal extends Modal {
 		];
 		contentEl.createEl('div', {
 			text: randomMessage,
-			cls: 'transition-message'
+			cls: 'rs-transition-message'
 		});
 
-		const buttonContainer = contentEl.createDiv({ cls: 'transition-buttons' });
-		
-		const cancelBtn = buttonContainer.createEl('button', { 
+		const buttonContainer = contentEl.createDiv({ cls: 'rs-transition-buttons' });
+
+		const cancelBtn = buttonContainer.createEl('button', {
 			text: 'Cancel'
 		});
 		if (Platform.isMobile) {
-			cancelBtn.addClass('mobile');
+			cancelBtn.addClass('rs-mobile');
 		}
-		
-		// Start countdown
-		this.countdownInterval = window.setInterval(() => {
+
+		// Start countdown - use plugin's registerInterval for proper lifecycle management
+		this.countdownInterval = this.plugin.registerInterval(window.setInterval(() => {
 			this.remainingSeconds--;
 			countdownEl.setText(`${this.remainingSeconds}s`);
-			
+
 			if (this.remainingSeconds <= 0) {
 				// Automatically switch when countdown reaches 0
 				this.plugin.confirmSwitch(this.targetRole.id);
-				if (this.countdownInterval) {
+				if (this.countdownInterval !== null) {
 					window.clearInterval(this.countdownInterval);
 				}
 				this.close();
 			}
-		}, 1000);
+		}, 1000));
 
 		// Event handlers
 		cancelBtn.addEventListener('click', () => {
@@ -95,9 +89,9 @@ export class TransitionModal extends Modal {
 				type: 'cancelTransition',
 				roleId: this.targetRole.id,
 				at: new Date().toISOString(),
-				meta: { 
+				meta: {
 					fromRoleId: this.plugin.data.state.activeRoleId || undefined,
-					transitionSeconds: this.plugin.data.settings.transitionSeconds 
+					transitionSeconds: this.plugin.data.settings.transitionSeconds
 				}
 			});
 			this.close();
@@ -129,7 +123,7 @@ export class RolePickerModal extends Modal {
 
 		// Mobile responsive styling
 		if (Platform.isMobile) {
-			contentEl.addClass('role-picker-modal');
+			contentEl.addClass('rs-role-picker-modal');
 		}
 
 		const title = this.mode === 'start' ? 'Start role' : 'Switch role';
@@ -138,13 +132,13 @@ export class RolePickerModal extends Modal {
 		if (this.plugin.data.roles.length === 0) {
 			contentEl.createDiv({
 				text: 'No roles created yet. Create roles in settings first.',
-				cls: 'modal-no-content'
+				cls: 'rs-modal-no-content'
 			});
 			return;
 		}
 
 		const rolesGrid = contentEl.createDiv({
-			cls: `role-picker-grid ${Platform.isMobile ? 'mobile' : ''}`
+			cls: `rs-role-picker-grid ${Platform.isMobile ? 'rs-mobile' : ''}`
 		});
 
 		this.plugin.data.roles.forEach(role => {
@@ -156,7 +150,7 @@ export class RolePickerModal extends Modal {
 		const isActive = this.plugin.data.state.activeRoleId === role.id;
 
 		const card = container.createDiv({
-			cls: `role-card-picker ${isActive ? 'active role-color-border' : ''}`
+			cls: `rs-role-card-picker ${isActive ? 'rs-active rs-role-color-border' : ''}`
 		});
 
 		if (isActive) {
@@ -166,20 +160,20 @@ export class RolePickerModal extends Modal {
 		// Hover effect
 		card.addEventListener('mouseenter', () => {
 			if (!isActive) {
-				card.addClass('role-color-border');
+				card.addClass('rs-role-color-border');
 				card.setCssProps({ '--role-color': role.colorHex });
 			}
 		});
 
 		card.addEventListener('mouseleave', () => {
 			if (!isActive) {
-				card.removeClass('role-color-border');
+				card.removeClass('rs-role-color-border');
 			}
 		});
 
 		// Role icon/color
 		const iconContainer = card.createDiv({
-			cls: 'role-icon-picker role-color-bg'
+			cls: 'rs-role-icon-picker rs-role-color-bg'
 		});
 		iconContainer.setCssProps({ '--role-color': role.colorHex });
 
@@ -191,7 +185,7 @@ export class RolePickerModal extends Modal {
 		// Role name
 		const nameEl = card.createEl('h3', {
 			text: role.name,
-			cls: `role-name-picker ${isActive ? 'active role-color-text' : ''}`
+			cls: `rs-role-name-picker ${isActive ? 'rs-active rs-role-color-text' : ''}`
 		});
 
 		if (isActive) {
@@ -202,7 +196,7 @@ export class RolePickerModal extends Modal {
 		if (role.description) {
 			card.createDiv({
 				text: role.description,
-				cls: 'role-description-picker'
+				cls: 'rs-role-description-picker'
 			});
 		}
 
@@ -210,7 +204,7 @@ export class RolePickerModal extends Modal {
 		if (isActive) {
 			const statusEl = card.createDiv({
 				text: '● Active',
-				cls: 'role-status-active role-color-text'
+				cls: 'rs-role-status-active rs-role-color-text'
 			});
 			statusEl.setCssProps({ '--role-color': role.colorHex });
 		}
@@ -262,20 +256,20 @@ export class NoteEditModal extends Modal {
 		contentEl.createEl('h2', { text: title });
 
 		this.textArea = contentEl.createEl('textarea', {
-			cls: 'note-edit-textarea'
+			cls: 'rs-note-edit-textarea'
 		});
-		
+
 		if (this.note) {
 			this.textArea.value = this.note.text;
 		}
 
 		const buttonContainer = contentEl.createDiv({
-			cls: 'note-edit-buttons'
+			cls: 'rs-note-edit-buttons'
 		});
 
 		const saveBtn = buttonContainer.createEl('button', {
 			text: 'Save',
-			cls: 'note-edit-save'
+			cls: 'rs-note-edit-save'
 		});
 		saveBtn.addEventListener('click', () => this.save());
 
@@ -283,7 +277,7 @@ export class NoteEditModal extends Modal {
 		if (this.note) {
 			const deleteBtn = buttonContainer.createEl('button', {
 				text: 'Delete',
-				cls: 'note-edit-delete'
+				cls: 'rs-note-edit-delete'
 			});
 			deleteBtn.addEventListener('click', () => this.delete());
 		}
@@ -346,42 +340,20 @@ export class RoleDashboardModal extends Modal {
 		contentEl.empty();
 
 		// Mobile responsive styling
-		contentEl.addClass('dashboard-modal');
+		contentEl.addClass('rs-dashboard-modal');
 		if (Platform.isMobile) {
-			contentEl.addClass('mobile');
+			contentEl.addClass('rs-mobile');
 		}
 
 		// Dashboard header with logo
-		const headerContainer = contentEl.createDiv({ cls: 'dashboard-header' });
+		const headerContainer = contentEl.createDiv({ cls: 'rs-dashboard-header' });
 
-		// Try to load logo, but don't fail if it doesn't work
-		// Logo loading is desktop-only to avoid FileSystemAdapter issues on mobile
-		if (!Platform.isMobile) {
-			try {
-				const adapter = this.app.vault.adapter;
-				// Use type guard to safely check if adapter has basePath
-				if (hasBasePath(adapter)) {
-					const configDir = this.app.vault.configDir;
-					const pluginDir = `${adapter.basePath}/${configDir}/plugins/obsidian-role-switch`;
-					const logo = headerContainer.createEl('img', {
-						attr: {
-							src: `app://local/${pluginDir}/image/logo.png`,
-							alt: 'Role-switch logo'
-						},
-						cls: 'dashboard-logo size-32'
-					});
+		// Add logo using inline SVG
+		const logoElement = IconLibrary.createLogoElement(32);
+		logoElement.addClass('rs-dashboard-logo');
+		headerContainer.appendChild(logoElement);
 
-					// Fallback if image fails to load
-					logo.addEventListener('error', () => {
-						logo.remove();
-					});
-				}
-			} catch {
-				// Logo loading failed, continue without logo
-			}
-		}
-
-		headerContainer.createEl('h2', { text: 'Role dashboard', cls: 'dashboard-header-title' });
+		headerContainer.createEl('h2', { text: 'Role dashboard', cls: 'rs-dashboard-header-title' });
 
 		// Analytics section
 		this.createAnalyticsSection(contentEl);
@@ -395,12 +367,12 @@ export class RoleDashboardModal extends Modal {
 
 	private createAnalyticsSection(contentEl: HTMLElement): void {
 		const section = contentEl.createDiv({
-			cls: 'analytics-section-dashboard'
+			cls: 'rs-analytics-section-dashboard'
 		});
 
 		section.createEl('h3', {
 			text: 'Analytics 📊',
-			cls: 'analytics-section-title'
+			cls: 'rs-analytics-section-title'
 		});
 
 		// Get analytics data
@@ -445,90 +417,90 @@ export class RoleDashboardModal extends Modal {
 
 		// Analytics grid
 		const grid = section.createDiv({
-			cls: `analytics-grid-dashboard ${Platform.isMobile ? 'mobile' : ''}`
+			cls: `rs-analytics-grid-dashboard ${Platform.isMobile ? 'rs-mobile' : ''}`
 		});
 
 		// Today's stats
 		const todayCard = grid.createDiv({
-			cls: 'analytics-card-dashboard'
+			cls: 'rs-analytics-card-dashboard'
 		});
 		todayCard.createEl('h4', {
 			text: 'Today',
-			cls: 'analytics-card-title'
+			cls: 'rs-analytics-card-title'
 		});
 		todayCard.createEl('div', {
 			text: `${Math.round(totalTodayMinutes)}min total`,
-			cls: 'analytics-stat-text'
+			cls: 'rs-analytics-stat-text'
 		});
 		todayCard.createEl('div', {
 			text: `${switchCount} switches`,
-			cls: 'analytics-stat-text-muted'
+			cls: 'rs-analytics-stat-text-muted'
 		});
 
 		// Averages card
 		const avgCard = grid.createDiv({
-			cls: 'analytics-card-dashboard'
+			cls: 'rs-analytics-card-dashboard'
 		});
 		avgCard.createEl('h4', {
 			text: 'Averages',
-			cls: 'analytics-card-title'
+			cls: 'rs-analytics-card-title'
 		});
 		avgCard.createEl('div', {
 			text: `${Math.round(avgDailyMinutes)}min/day (week)`,
-			cls: 'analytics-stat-text'
+			cls: 'rs-analytics-stat-text'
 		});
 		avgCard.createEl('div', {
 			text: `${Math.round(avgMonthlyDailyMinutes)}min/day (month)`,
-			cls: 'analytics-stat-text-muted'
+			cls: 'rs-analytics-stat-text-muted'
 		});
 
 		// Week and month totals
 		const totalsCard = grid.createDiv({
-			cls: `analytics-card-dashboard analytics-card-totals ${Platform.isMobile ? 'mobile' : ''}`
+			cls: `rs-analytics-card-dashboard rs-analytics-card-totals ${Platform.isMobile ? 'rs-mobile' : ''}`
 		});
 		totalsCard.createEl('h4', {
 			text: 'Totals',
-			cls: 'analytics-card-title'
+			cls: 'rs-analytics-card-title'
 		});
 
 		const totalsGrid = totalsCard.createDiv({
-			cls: 'analytics-totals-grid'
+			cls: 'rs-analytics-totals-grid'
 		});
 
 		totalsGrid.createEl('div', {
 			text: `Week: ${Math.round(totalWeekMinutes)}min`,
-			cls: 'analytics-totals-text'
+			cls: 'rs-analytics-totals-text'
 		});
 		totalsGrid.createEl('div', {
 			text: `Month: ${Math.round(totalMonthMinutes)}min`,
-			cls: 'analytics-totals-text'
+			cls: 'rs-analytics-totals-text'
 		});
 	}
 
 	private createCurrentStatusSection(container: HTMLElement): void {
 		const statusSection = container.createDiv({
-			cls: 'current-status-dashboard'
+			cls: 'rs-current-status-dashboard'
 		});
 
-		statusSection.createEl('h3', { text: 'Current session', cls: 'session-header-title' });
+		statusSection.createEl('h3', { text: 'Current session', cls: 'rs-session-header-title' });
 
 		if (this.plugin.data.state.activeRoleId) {
 			const activeRole = this.plugin.data.roles.find(r => r.id === this.plugin.data.state.activeRoleId);
 			if (activeRole) {
 				const activeInfo = statusSection.createDiv({
-					cls: 'active-info'
+					cls: 'rs-active-info'
 				});
 
 				// Active role color dot with icon
 				const activeRoleDot = activeInfo.createDiv({
-					cls: 'active-role-dot role-color-bg'
+					cls: 'rs-active-role-dot rs-role-color-bg'
 				});
 				activeRoleDot.setCssProps({ '--role-color': activeRole.colorHex });
 
 				// Add icon if available
 				if (activeRole.icon && IconLibrary.ICONS[activeRole.icon]) {
 					const iconElement = IconLibrary.createIconElement(activeRole.icon, 12, 'white');
-					iconElement.addClass('icon-filter-shadow');
+					iconElement.addClass('rs-icon-filter-shadow');
 					activeRoleDot.appendChild(iconElement);
 				}
 
@@ -536,14 +508,14 @@ export class RoleDashboardModal extends Modal {
 				const roleInfo = activeInfo.createDiv();
 				roleInfo.createEl('strong', {
 					text: `Active: ${activeRole.name}`,
-					cls: 'active-role-name'
+					cls: 'rs-active-role-name'
 				});
 
 				// Create real-time session duration
 				if (this.plugin.data.state.activeStartAt) {
 					this.durationEl = roleInfo.createEl('div', {
 						text: 'Duration: 0s',
-						cls: 'active-duration'
+						cls: 'rs-active-duration'
 					});
 					this.updateDurationDisplay();
 				}
@@ -553,14 +525,14 @@ export class RoleDashboardModal extends Modal {
 					const remaining = this.plugin.getRemainingLockTime();
 					this.lockEl = statusSection.createDiv({
 						text: `🔒 Session locked for ${remaining} more seconds`,
-						cls: 'session-locked-warning'
+						cls: 'rs-session-locked-warning'
 					});
 				}
 			}
 		} else {
 			statusSection.createDiv({
 				text: '⏸️ No active session',
-				cls: 'no-session-notice'
+				cls: 'rs-no-session-notice'
 			});
 		}
 
@@ -575,23 +547,23 @@ export class RoleDashboardModal extends Modal {
 		if (todaySessions.length > 0) {
 			container.createEl('h4', {
 				text: "Today's history",
-				cls: 'history-section-title'
+				cls: 'rs-history-section-title'
 			});
 
 			const historyContainer = container.createDiv({
-				cls: 'history-container'
+				cls: 'rs-history-container'
 			});
 
 			todaySessions.forEach(session => {
 				const role = this.plugin.data.roles.find(r => r.id === session.roleId);
 				if (role) {
 					const sessionEl = historyContainer.createDiv({
-						cls: 'history-session-item'
+						cls: 'rs-history-session-item'
 					});
 
 					// Role indicator
 					const indicator = sessionEl.createDiv({
-						cls: 'history-role-indicator role-color-bg'
+						cls: 'rs-history-role-indicator rs-role-color-bg'
 					});
 					indicator.setCssProps({ '--role-color': role.colorHex });
 
@@ -609,7 +581,7 @@ export class RoleDashboardModal extends Modal {
 
 					sessionInfo.createEl('div', {
 						text: `${role.name} • ${startTime} • ${duration}min`,
-						cls: 'history-session-details'
+						cls: 'rs-history-session-details'
 					});
 				}
 			});
@@ -618,16 +590,17 @@ export class RoleDashboardModal extends Modal {
 
 	private startRealtimeTimer(): void {
 		// Clear any existing timer
-		if (this.timerInterval) {
+		if (this.timerInterval !== null) {
 			window.clearInterval(this.timerInterval);
 		}
 
 		// Update timer every second if there's an active session
+		// Use plugin's registerInterval for proper lifecycle management
 		if (this.plugin.data.state.activeRoleId && this.plugin.data.state.activeStartAt) {
-			this.timerInterval = window.setInterval(() => {
+			this.timerInterval = this.plugin.registerInterval(window.setInterval(() => {
 				this.updateDurationDisplay();
 				this.updateLockDisplay();
-			}, 1000);
+			}, 1000));
 		}
 	}
 
@@ -695,12 +668,12 @@ export class IconPickerModal extends Modal {
 
 		// Container for all icons with better structure
 		const iconsContainer = contentEl.createDiv({
-			cls: 'icon-picker-container'
+			cls: 'rs-icon-picker-container'
 		});
 
 		// Create a simple grid with all icons first
 		const allIconsGrid = iconsContainer.createDiv({
-			cls: 'icon-grid'
+			cls: 'rs-icon-grid'
 		});
 
 		// Get all available icons
@@ -709,7 +682,7 @@ export class IconPickerModal extends Modal {
 		if (allIcons.length === 0) {
 			iconsContainer.createDiv({
 				text: 'No icons available',
-				cls: 'no-icons-available'
+				cls: 'rs-no-icons-available'
 			});
 		} else {
 			// Add all icons to the grid
@@ -723,7 +696,7 @@ export class IconPickerModal extends Modal {
 
 		// Action buttons
 		const buttonContainer = contentEl.createDiv({
-			cls: 'icon-picker-buttons'
+			cls: 'rs-icon-picker-buttons'
 		});
 
 		const selectBtn = buttonContainer.createEl('button', { text: 'Select' });
@@ -748,7 +721,7 @@ export class IconPickerModal extends Modal {
 		const isSelected = this.selectedIcon === iconKey;
 
 		const iconBtn = container.createDiv({
-			cls: `icon-button ${isSelected ? 'selected' : ''}`,
+			cls: `rs-icon-button ${isSelected ? 'rs-selected' : ''}`,
 			attr: {
 				'data-icon-key': iconKey,
 				title: iconKey
@@ -756,9 +729,9 @@ export class IconPickerModal extends Modal {
 		});
 
 		const iconEl = iconBtn.createDiv({
-			cls: `icon-element ${isSelected ? 'selected' : ''}`
+			cls: `rs-icon-element ${isSelected ? 'rs-selected' : ''}`
 		});
-		
+
 		try {
 			const iconElement = IconLibrary.createIconElement(iconKey, 20, isSelected ? '#007acc' : '#666');
 			iconEl.appendChild(iconElement);
@@ -796,13 +769,13 @@ export class IconPickerModal extends Modal {
 				const isSelected = iconKey === this.selectedIcon;
 
 				if (isSelected) {
-					btn.addClass('selected');
+					btn.addClass('rs-selected');
 				} else {
-					btn.removeClass('selected');
+					btn.removeClass('rs-selected');
 				}
 
 				// Update the icon color by recreating the icon element
-				const iconEl = btn.querySelector('.icon-element');
+				const iconEl = btn.querySelector('.rs-icon-element');
 				if (iconEl instanceof HTMLElement && iconKey) {
 					iconEl.empty();
 					try {
