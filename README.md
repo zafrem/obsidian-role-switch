@@ -150,7 +150,7 @@ When switching roles, you'll see:
 
 ## Version Information
 
-- **Version**: 0.0.1
+- **Version**: 0.1.0
 - **Minimum Obsidian**: 1.6.0
 - **Platforms**: Windows, macOS, Linux, iOS, Android
 - **License**: MIT

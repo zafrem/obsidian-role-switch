@@ -76,25 +76,9 @@ export default class RoleSwitchPlugin extends Plugin {
 		if (this.data.settings.enableSync) {
 			this.sync.startAutoSync();
 		}
-
-		// Save data when app is backgrounded (important for mobile)
-		this.registerDomEvent(document, 'visibilitychange', () => {
-			if (document.hidden) {
-				// App is being backgrounded, save data immediately
-				void this.savePluginData();
-			}
-		});
-
-		// Save data before page unload (mobile safety)
-		this.registerDomEvent(window, 'beforeunload', () => {
-			void this.savePluginData();
-		});
 	}
 
 	onunload() {
-		// Save data before unloading (important for mobile)
-		void this.savePluginData();
-
 		this.removeStatusBar();
 		this.removeWorkspaceBorder();
 		this.stopReminderInterval();

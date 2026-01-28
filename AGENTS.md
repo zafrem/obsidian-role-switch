@@ -8,7 +8,7 @@
 - **Plugin ID**: `role-switch`
 - **Entry point**: `main.ts` compiled to `main.js` and loaded by Obsidian
 - **Required release artifacts**: `main.js`, `manifest.json`, and optional `styles.css`
-- **Current Version**: 0.0.1
+- **Current Version**: 0.1.0
 - **Minimum Obsidian Version**: 1.6.0
 - **Mobile Support**: Full (iOS and Android)
 
@@ -146,7 +146,7 @@ interface RoleSwitchData {
 ## Versioning & releases
 
 ### Version management:
-- **Current version**: 0.0.1 (initial release)
+- **Current version**: 0.1.0 (initial release)
 - **Version script**: `npm run version` uses `version-bump.mjs` to sync `manifest.json` and `versions.json`
 - **Version mapping**: `versions.json` maps plugin version → minimum Obsidian version
 
