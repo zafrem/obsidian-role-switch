@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-role-switch-plugin",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "An Obsidian plugin for switching between different work roles (developer, writer, researcher, etc.) with intentional transitions, session tracking, and role-specific focus.",
 	"main": "main.js",
 	"scripts": {
